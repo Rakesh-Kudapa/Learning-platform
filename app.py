@@ -1,23 +1,25 @@
 """
-app.py  —  Step 1 scaffold
---------------------------
-A minimal but RUNNABLE Flask app using the application-factory pattern.
-It loads config, initialises the database (creating all tables from models.py),
-and serves a status landing page so you can confirm the stack works end to end
-before any feature branches are layered on.
+app.py — Excelra RWD/RWE Learning Platform
+==========================================
+Application factory. Wires config, the database, Flask-Login, and the auth
+blueprint, then exposes the login-protected course.
 
-Run it:
-    flask --app app run --debug
-or:
-    python app.py
+Branches so far:
+  feat/auth  (this) -> register / login / logout + course behind a login wall
+
+Run:
+    flask --app app run --debug      (or)      python app.py
+    -> http://localhost:5000
 """
 import os
-from flask import Flask, render_template
+from flask import (Flask, redirect, url_for, send_from_directory,
+                   jsonify, render_template)
+from flask_login import login_required, current_user
 from dotenv import load_dotenv
 
-from models import db
+from models import db, login_manager
 
-load_dotenv()  # read .env
+load_dotenv()
 
 
 def create_app():
@@ -34,13 +36,33 @@ def create_app():
 
     # --- extensions ---
     db.init_app(app)
-    with app.app_context():
-        db.create_all()  # creates all tables defined in models.py
+    login_manager.init_app(app)
 
-    # --- routes (Step 1: just a status page; features arrive on later branches) ---
+    # --- blueprints ---
+    from auth import auth as auth_bp
+    app.register_blueprint(auth_bp)
+
+    with app.app_context():
+        db.create_all()
+
+    # --- routes ---
     @app.route("/")
     def index():
-        return render_template("index.html")
+        if current_user.is_authenticated:
+            return redirect(url_for("course"))
+        return redirect(url_for("auth.login"))
+
+    @app.route("/course")
+    @login_required
+    def course():
+        # served as a static file (no Jinja) — it's a self-contained app
+        return send_from_directory(
+            os.path.join(app.root_path, "templates"), "course.html")
+
+    @app.route("/api/me")
+    @login_required
+    def api_me():
+        return jsonify({"name": current_user.name, "email": current_user.email})
 
     @app.route("/health")
     def health():

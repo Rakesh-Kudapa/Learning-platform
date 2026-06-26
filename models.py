@@ -9,6 +9,7 @@ Postgres later with no model changes.
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
@@ -21,6 +22,12 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def set_password(self, raw):
+        self.password_hash = generate_password_hash(raw)
+
+    def check_password(self, raw):
+        return check_password_hash(self.password_hash, raw)
 
     # relationships
     progress = db.relationship("Progress", backref="user", uselist=False, cascade="all, delete-orphan")
@@ -93,3 +100,19 @@ class Contribution(db.Model):
     content = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(12), default="approved")  # 'approved' | 'pending' (optional moderation)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# ------------------------------------------------------------------
+#  Auth plumbing (Flask-Login). Kept here so the User model and its
+#  loader live together and there is no circular import.
+# ------------------------------------------------------------------
+from flask_login import LoginManager
+
+login_manager = LoginManager()
+login_manager.login_view = "auth.login"
+login_manager.login_message_category = "error"
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))

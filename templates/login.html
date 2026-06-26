@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — Real-World Data &amp; Evidence | Excelra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F7FB;--surface:#fff;--ink:#131B2E;--ink-soft:#5A6781;--line:#E3E9F2;
+  --signal:#11B5C4;--violet:#6C5CE7;--magenta:#E84F9C;--warn:#E9683C;--success:#15B57E;
+  --grad:linear-gradient(90deg,#11B5C4,#6C5CE7,#E84F9C);
+}
+*{margin:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:grid;place-items:center;padding:22px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;width:100%;max-width:420px;padding:34px 32px;box-shadow:0 14px 44px rgba(19,27,46,.10)}
+.brand{font-family:'Space Grotesk';font-weight:700;font-size:22px;letter-spacing:-.02em;text-align:center}
+.brand span{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.kicker{text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8C97AE;font-weight:600;margin-top:3px}
+.wave{display:block;width:120px;height:26px;margin:16px auto 6px}
+h1{font-family:'Space Grotesk';font-size:22px;font-weight:600;text-align:center;margin:14px 0 4px}
+.sub{text-align:center;color:var(--ink-soft);font-size:14px;margin-bottom:22px}
+.field{margin-bottom:14px}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px}
+input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:15px;background:#FBFCFE}
+input:focus{outline:none;border-color:var(--violet);background:#fff}
+.btn{width:100%;padding:13px;border:none;border-radius:10px;background:var(--grad);color:#fff;font-family:inherit;font-weight:600;font-size:15px;cursor:pointer;margin-top:6px;box-shadow:0 6px 18px rgba(108,92,231,.26)}
+.btn:hover{filter:brightness(1.05)}
+.switch{text-align:center;margin-top:18px;font-size:13.5px;color:var(--ink-soft)}
+.switch a{color:var(--violet);font-weight:600;text-decoration:none;cursor:pointer}
+.flash{padding:11px 14px;border-radius:10px;font-size:13.5px;font-weight:500;margin-bottom:16px}
+.flash.error{background:rgba(233,104,60,.10);color:#b14620}
+.flash.ok{background:rgba(21,181,126,.10);color:#0c7a52}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">excel<span>ra</span></div>
+  <div class="kicker">Life Sciences Learning</div>
+  <svg class="wave" viewBox="0 0 120 26" preserveAspectRatio="none" aria-hidden="true">
+    <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#11B5C4"/><stop offset=".5" stop-color="#6C5CE7"/><stop offset="1" stop-color="#E84F9C"/></linearGradient></defs>
+    <path d="M0 14 Q 8 0 16 16 T 32 8 T 46 18 T 60 12 L 120 13" fill="none" stroke="url(#g)" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="flash {{ category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- SIGN IN -->
+  <div id="loginView" class="{{ 'hide' if mode == 'register' else '' }}">
+    <h1>Welcome back</h1>
+    <p class="sub">Sign in to continue your course.</p>
+    <form method="POST" action="{{ url_for('auth.login') }}">
+      <div class="field"><label>Email</label><input type="email" name="email" required autocomplete="email" placeholder="you@example.com"></div>
+      <div class="field"><label>Password</label><input type="password" name="password" required autocomplete="current-password" placeholder="••••••••"></div>
+      <button class="btn" type="submit">Sign in</button>
+    </form>
+    <div class="switch">New here? <a onclick="toggle('register')">Create an account</a></div>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="registerView" class="{{ '' if mode == 'register' else 'hide' }}">
+    <h1>Create your account</h1>
+    <p class="sub">It takes a few seconds to get started.</p>
+    <form method="POST" action="{{ url_for('auth.register') }}">
+      <div class="field"><label>Full name</label><input type="text" name="name" required placeholder="Your name"></div>
+      <div class="field"><label>Email</label><input type="email" name="email" required autocomplete="email" placeholder="you@example.com"></div>
+      <div class="field"><label>Password</label><input type="password" name="password" required minlength="6" autocomplete="new-password" placeholder="At least 6 characters"></div>
+      <button class="btn" type="submit">Create account</button>
+    </form>
+    <div class="switch">Already have an account? <a onclick="toggle('login')">Sign in</a></div>
+  </div>
+</div>
+
+<script>
+function toggle(view){
+  document.getElementById('loginView').classList.toggle('hide', view!=='login');
+  document.getElementById('registerView').classList.toggle('hide', view!=='register');
+}
+</script>
+</body>
+</html>

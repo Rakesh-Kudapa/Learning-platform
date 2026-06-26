@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal from the Noise — Real-World Data & Evidence | Excelra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F7FB; --surface:#FFFFFF; --surface-2:#FBFCFE;
+  --ink:#131B2E; --ink-soft:#5A6781; --ink-faint:#8C97AE;
+  --line:#E3E9F2; --line-soft:#EEF2F8;
+  --noise:#B7C0D4;
+  --signal:#11B5C4; --violet:#6C5CE7; --magenta:#E84F9C;
+  --success:#15B57E; --warn:#E9683C;
+  --grad:linear-gradient(90deg,#11B5C4 0%,#6C5CE7 52%,#E84F9C 100%);
+  --shadow:0 1px 2px rgba(19,27,46,.04),0 8px 24px rgba(19,27,46,.06);
+  --shadow-lg:0 12px 40px rgba(19,27,46,.12);
+  --r:14px; --r-sm:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'IBM Plex Mono',monospace}
+h1,h2,h3,h4,.display{font-family:'Space Grotesk',sans-serif;line-height:1.15;letter-spacing:-.01em}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- App layout ---------- */
+.app{display:grid;grid-template-columns:288px 1fr;min-height:100vh}
+.sidebar{
+  background:var(--surface);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.main{display:flex;flex-direction:column;min-width:0}
+
+/* ---------- Brand / sidebar ---------- */
+.brand{padding:22px 22px 16px;border-bottom:1px solid var(--line-soft)}
+.brand .logo{font-family:'Space Grotesk';font-weight:700;font-size:21px;letter-spacing:-.02em;color:var(--ink)}
+.brand .logo span{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.brand .kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin-top:3px;font-weight:600}
+
+.nav{padding:14px 12px;flex:1}
+.nav .nav-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;padding:6px 10px 10px}
+.mod{
+  display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:var(--r-sm);
+  cursor:pointer;transition:background .15s;margin-bottom:2px;width:100%;text-align:left;
+}
+.mod:hover{background:var(--surface-2)}
+.mod.active{background:linear-gradient(90deg,rgba(17,181,196,.10),rgba(108,92,231,.06))}
+.mod.active .mod-num{background:var(--grad);color:#fff;border-color:transparent}
+.mod.locked{opacity:.5;cursor:not-allowed}
+.mod-num{
+  flex:none;width:26px;height:26px;border-radius:8px;border:1.5px solid var(--line);
+  display:grid;place-items:center;font-family:'IBM Plex Mono';font-size:12px;font-weight:500;
+  color:var(--ink-soft);background:var(--surface);transition:.15s;
+}
+.mod.done .mod-num{background:var(--success);border-color:transparent;color:#fff}
+.mod-label{font-size:13.5px;font-weight:500;color:var(--ink);flex:1;min-width:0}
+.mod.locked .mod-label{color:var(--ink-faint)}
+.mod-ico{flex:none;color:var(--ink-faint);font-size:13px}
+
+/* ---------- HUD header ---------- */
+.hud{
+  background:var(--surface);border-bottom:1px solid var(--line);
+  padding:14px 28px 0;position:sticky;top:0;z-index:20;
+}
+.hud-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.hud-stats{display:flex;gap:10px;margin-left:auto;align-items:center}
+.stat{
+  display:flex;align-items:center;gap:7px;background:var(--surface-2);border:1px solid var(--line);
+  padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;
+}
+.stat .dot{width:8px;height:8px;border-radius:50%}
+.stat.xp .dot{background:var(--signal)}
+.stat.lvl .dot{background:var(--violet)}
+.stat.badge .dot{background:var(--magenta)}
+.stat b{font-family:'IBM Plex Mono';font-weight:600}
+.menu-btn{display:none}
+
+/* waveform progress signature */
+.wave-wrap{padding:10px 0 12px;position:relative}
+.wave-wrap svg{display:block;width:100%;height:46px;overflow:visible}
+.wave-meta{display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-faint);font-weight:600;margin-top:-2px}
+.wave-meta .pct{color:var(--signal);font-family:'IBM Plex Mono'}
+
+/* ---------- Content ---------- */
+.scroll{flex:1;overflow-y:auto}
+.page{max-width:780px;margin:0 auto;padding:38px 28px 90px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--violet);font-weight:600;margin-bottom:14px}
+.eyebrow .mono{font-size:12px;color:var(--ink-faint)}
+.page h1{font-size:38px;font-weight:700;margin-bottom:14px}
+.page h1 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.lead{font-size:18px;color:var(--ink-soft);margin-bottom:26px;max-width:62ch}
+.page h2{font-size:23px;font-weight:600;margin:36px 0 12px}
+.page h3{font-size:17px;font-weight:600;margin:24px 0 8px}
+.page p{margin-bottom:14px;color:#28324A}
+.page p.muted{color:var(--ink-soft)}
+
+/* narration bar */
+.narrate{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);
+  border-radius:999px;padding:7px 8px 7px 16px;margin-bottom:26px;box-shadow:var(--shadow);width:fit-content}
+.narrate .play{width:34px;height:34px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;flex:none}
+.narrate .play:active{transform:scale(.94)}
+.narrate .ntxt{font-size:13px;font-weight:600;color:var(--ink-soft)}
+.narrate .ntxt b{color:var(--ink)}
+
+/* callouts & cards */
+.callout{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--signal);
+  border-radius:var(--r-sm);padding:16px 18px;margin:20px 0;box-shadow:var(--shadow)}
+.callout.violet{border-left-color:var(--violet)}
+.callout.magenta{border-left-color:var(--magenta)}
+.callout .co-t{font-weight:600;font-size:14px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.callout p{margin:0;font-size:14.5px;color:var(--ink-soft)}
+
+.cards2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+.dcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--shadow)}
+.dcard .dc-tag{font-family:'IBM Plex Mono';font-size:11px;font-weight:500;letter-spacing:.04em;
+  padding:3px 9px;border-radius:6px;display:inline-block;margin-bottom:10px}
+.dcard.rwd .dc-tag{background:rgba(17,181,196,.12);color:#0a7c87}
+.dcard.rwe .dc-tag{background:rgba(232,79,156,.12);color:#b32d6e}
+.dcard h4{font-size:16px;margin-bottom:6px}
+.dcard p{font-size:13.5px;color:var(--ink-soft);margin:0}
+
+.obj-list{list-style:none;margin:8px 0 4px}
+.obj-list li{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-soft);align-items:flex-start}
+.obj-list li:last-child{border-bottom:none}
+.obj-list .on{flex:none;width:24px;height:24px;border-radius:7px;background:var(--surface-2);border:1px solid var(--line);
+  display:grid;place-items:center;font-family:'IBM Plex Mono';font-size:12px;color:var(--violet);font-weight:600}
+.obj-list li span{font-size:15px;color:#28324A}
+
+/* knowledge check */
+.kc{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin:30px 0 10px;box-shadow:var(--shadow)}
+.kc .kc-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.kc .kc-badge{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--violet)}
+.kc .kc-xp{margin-left:auto;font-family:'IBM Plex Mono';font-size:12px;color:var(--signal);font-weight:600}
+.kc .q{font-size:16.5px;font-weight:600;margin:6px 0 16px;font-family:'Space Grotesk'}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 15px;
+  border:1.5px solid var(--line);border-radius:var(--r-sm);margin-bottom:9px;background:var(--surface-2);
+  transition:.14s;font-size:14.5px;color:var(--ink)}
+.opt:hover:not(:disabled){border-color:var(--violet);background:#fff}
+.opt .ok{flex:none;width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line);
+  display:grid;place-items:center;font-family:'IBM Plex Mono';font-size:11px;color:var(--ink-faint)}
+.opt.correct{border-color:var(--success);background:rgba(21,181,126,.07)}
+.opt.correct .ok{background:var(--success);border-color:transparent;color:#fff}
+.opt.wrong{border-color:var(--warn);background:rgba(233,104,60,.06)}
+.opt.wrong .ok{background:var(--warn);border-color:transparent;color:#fff}
+.opt:disabled{cursor:default}
+.kc-fb{margin-top:6px;padding:13px 15px;border-radius:var(--r-sm);font-size:14px;display:none}
+.kc-fb.show{display:block}
+.kc-fb.good{background:rgba(21,181,126,.09);color:#0c7a52}
+.kc-fb.bad{background:rgba(233,104,60,.09);color:#b14620}
+.kc-fb b{font-weight:600}
+
+/* footer nav */
+.pagenav{display:flex;justify-content:space-between;gap:12px;margin-top:34px;padding-top:22px;border-top:1px solid var(--line)}
+.btn{display:inline-flex;align-items:center;gap:9px;padding:12px 20px;border-radius:var(--r-sm);font-weight:600;font-size:14.5px;transition:.15s}
+.btn.ghost{color:var(--ink-soft);border:1px solid var(--line);background:var(--surface)}
+.btn.ghost:hover{border-color:var(--ink-soft);color:var(--ink)}
+.btn.prim{background:var(--grad);color:#fff;box-shadow:0 6px 18px rgba(108,92,231,.28)}
+.btn.prim:hover{filter:brightness(1.05);transform:translateY(-1px)}
+.btn.prim:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;filter:none}
+.btn.prim:disabled .lk{display:inline}
+.btn .lk{display:none}
+
+/* svg diagram */
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin:22px 0;box-shadow:var(--shadow)}
+.diagram .dg-cap{font-size:12.5px;color:var(--ink-faint);text-align:center;margin-top:12px;font-style:italic}
+
+/* locked / placeholder page */
+.locked-page{max-width:560px;margin:0 auto;padding:90px 28px;text-align:center}
+.locked-page .lk-ico{width:64px;height:64px;border-radius:18px;background:var(--surface);border:1px solid var(--line);
+  display:grid;place-items:center;margin:0 auto 20px;box-shadow:var(--shadow);color:var(--ink-faint)}
+.locked-page h2{font-size:24px;margin-bottom:10px}
+.locked-page p{color:var(--ink-soft)}
+
+/* toast */
+.toast-wrap{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none}
+.toast{background:var(--ink);color:#fff;padding:12px 18px;border-radius:999px;font-size:14px;font-weight:600;
+  display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-lg);animation:pop .35s cubic-bezier(.2,1.2,.3,1)}
+.toast .ti{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:14px}
+.toast.xp .ti{background:var(--signal)}
+.toast.badge .ti{background:var(--magenta)}
+.toast.lvl .ti{background:var(--violet)}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.92)}to{opacity:1;transform:none}}
+
+/* welcome modal */
+.modal-bg{position:fixed;inset:0;background:rgba(19,27,46,.55);backdrop-filter:blur(4px);z-index:200;display:grid;place-items:center;padding:20px}
+.modal{background:var(--surface);border-radius:20px;max-width:460px;width:100%;padding:34px;box-shadow:var(--shadow-lg);text-align:center}
+.modal h2{font-size:25px;margin-bottom:8px}
+.modal p{color:var(--ink-soft);margin-bottom:20px;font-size:15px}
+.modal input{width:100%;padding:13px 16px;border:1.5px solid var(--line);border-radius:var(--r-sm);font-family:inherit;font-size:15px;margin-bottom:14px;text-align:center}
+.modal input:focus{outline:none;border-color:var(--violet)}
+.modal .wave-hero{height:54px;margin-bottom:18px}
+
+/* mobile */
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:0;top:0;width:284px;z-index:60;transform:translateX(-100%);transition:transform .25s;box-shadow:var(--shadow-lg)}
+  .sidebar.open{transform:none}
+  .menu-btn{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface)}
+  .hud{padding:12px 16px 0}
+  .page{padding:26px 18px 80px}
+  .page h1{font-size:30px}
+  .cards2{grid-template-columns:1fr}
+  .scrim{position:fixed;inset:0;background:rgba(19,27,46,.4);z-index:55;display:none}
+  .scrim.open{display:block}
+  .hud-stats .stat .lbl{display:none}
+}
+.scrim{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">excel<span>ra</span></div>
+      <div class="kicker">Life Sciences Learning</div>
+      <div style="margin-top:11px;font-size:12px;color:#8C97AE;display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <span id="hiUser"></span>
+        <a href="/logout" style="color:#6C5CE7;font-weight:600;text-decoration:none;flex:none">Sign out</a>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-title">Course Modules</div>
+      <div id="navList"></div>
+    </nav>
+  </aside>
+  <div class="scrim" id="scrim" onclick="toggleNav(false)"></div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <header class="hud">
+      <div class="hud-row">
+        <button class="menu-btn" onclick="toggleNav(true)" aria-label="Open menu">☰</button>
+        <div class="hud-stats">
+          <span class="stat xp"><span class="dot"></span><span class="lbl">XP</span> <b id="xpVal">0</b></span>
+          <span class="stat lvl"><span class="dot"></span><span class="lbl">Level</span> <b id="lvlVal">1</b>/12</span>
+          <span class="stat badge"><span class="dot"></span><span class="lbl">Badges</span> <b id="badgeVal">0</b></span>
+        </div>
+      </div>
+      <div class="wave-wrap">
+        <svg id="wave" viewBox="0 0 1000 80" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="wgrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#11B5C4"/><stop offset=".5" stop-color="#6C5CE7"/><stop offset="1" stop-color="#E84F9C"/>
+            </linearGradient>
+          </defs>
+          <path id="waveBg" fill="none" stroke="var(--noise)" stroke-width="2.5" stroke-linecap="round"/>
+          <path id="waveFg" fill="none" stroke="url(#wgrad)" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <div class="wave-meta">
+          <span>Raw data</span><span class="pct" id="pctVal">0% complete</span><span>Evidence</span>
+        </div>
+      </div>
+    </header>
+    <div class="scroll" id="scroll">
+      <div id="view"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+<div id="modalHost"></div>
+
+<script>
+/* ============================================================
+   STATE  (persisted with graceful fallback)
+============================================================ */
+const SAVE_KEY='excelra_rwd_rwe_v1';
+let mem={};
+const store={
+  load(){ try{const r=localStorage.getItem(SAVE_KEY);return r?JSON.parse(r):null;}catch(e){return mem[SAVE_KEY]||null;} },
+  save(o){ try{localStorage.setItem(SAVE_KEY,JSON.stringify(o));}catch(e){mem[SAVE_KEY]=o;} }
+};
+let state = store.load() || { name:'', xp:0, done:{}, checks:{}, badges:[], current:0, assessment:null };
+function persist(){ store.save(state); }
+
+/* ============================================================
+   COURSE DATA  (Modules 1-2 authored; 3-12 stubbed/locked)
+============================================================ */
+const COURSE=[
+ {id:0,title:'Introduction',short:'Introduction',type:'content',body:mod1,check:{
+   xp:20,
+   q:'Which of these is an example of Real-World Data (RWD)?',
+   opts:[
+    'The primary result of a tightly controlled randomized clinical trial',
+    'A patient\u2019s electronic health record created during routine hospital care',
+    'A chemical structure drawn by a medicinal chemist',
+    'A hypothesis written in a research grant proposal'],
+   answer:1,
+   explain:'RWD is health data generated during everyday care \u2014 EHRs, insurance claims, registries, wearables \u2014 not data from a controlled trial or lab bench.'
+ }},
+ {id:1,title:'Business Overview',short:'Business Overview',type:'content',body:mod2,check:{
+   xp:20,
+   q:'Why does the Real-World Evidence function exist at all?',
+   opts:[
+    'Because clinical trials are cheap and cover every kind of patient',
+    'Because regulators have banned the use of clinical trials',
+    'Because trials are narrow and stop at approval, yet decisions need evidence about diverse real patients over time',
+    'Because real-world data is always cleaner than trial data'],
+   answer:2,
+   explain:'Trials are controlled, expensive, narrow, and end at approval. RWE answers what happens afterward \u2014 in real, diverse populations, over long periods \u2014 which trials can\u2019t.'
+ }},
+ {id:2,title:'End-to-End Process',short:'End-to-End Process',type:'locked'},
+ {id:3,title:'Key Terminologies',short:'Key Terminologies',type:'locked'},
+ {id:4,title:'Stakeholders',short:'Stakeholders',type:'locked'},
+ {id:5,title:'Data Landscape',short:'Data Landscape',type:'locked'},
+ {id:6,title:'Industry Standards',short:'Industry Standards',type:'locked'},
+ {id:7,title:'Technology Ecosystem',short:'Technology Ecosystem',type:'locked'},
+ {id:8,title:'Current Challenges',short:'Current Challenges',type:'locked'},
+ {id:9,title:'Role of Data Engineering & AI',short:'Data Engineering & AI',type:'locked'},
+ {id:10,title:'Summary',short:'Summary',type:'locked'},
+ {id:11,title:'References',short:'References',type:'locked'},
+];
+
+const BADGES={
+  first:{name:'First Steps',icon:'\u2691',when:'Complete Module 1'},
+  detective:{name:'Data Detective',icon:'\u2315',when:'Pass 2 knowledge checks'},
+  half:{name:'Halfway Hero',icon:'\u25D1',when:'Reach the halfway point'},
+  expert:{name:'Evidence Expert',icon:'\u2605',when:'Complete every module'},
+  certified:{name:'Certified',icon:'\u2713',when:'Pass the final assessment'},
+};
+
+/* ============================================================
+   MODULE CONTENT
+============================================================ */
+function mod1(){return `
+ <div class="eyebrow"><span class="mono">MODULE 01</span> \u2022 Introduction</div>
+ <h1>Signal from the <em>Noise</em></h1>
+ <p class="lead">Every day, millions of patients generate data just by living \u2014 visiting clinics, filling prescriptions, wearing fitness trackers. This course is about turning that messy, real-world trail into evidence that helps better, safer medicines reach the people who need them.</p>
+
+ ${narrateBar('Module 1: Introduction')}
+
+ <h2>What you\u2019ll be able to do</h2>
+ <p class="muted">By the end of this 50-minute course, you will be able to:</p>
+ <ul class="obj-list">
+   <li><span class="on">1</span><span>Define <b>Real-World Data (RWD)</b> and <b>Real-World Evidence (RWE)</b> and explain how they differ.</span></li>
+   <li><span class="on">2</span><span>Identify the main sources of real-world data and where they come from.</span></li>
+   <li><span class="on">3</span><span>Describe how raw, messy data becomes trusted evidence, step by step.</span></li>
+   <li><span class="on">4</span><span>Recognise the standards, technologies, and people involved.</span></li>
+   <li><span class="on">5</span><span>Explain how data engineering and AI \u2014 and partners like Excelra \u2014 accelerate the work.</span></li>
+ </ul>
+
+ <h2>RWD and RWE \u2014 the two ideas everything rests on</h2>
+ <p>These two terms sound similar but mean different things. Get this distinction and the rest of the course clicks into place.</p>
+ <div class="cards2">
+   <div class="dcard rwd"><span class="dc-tag">RWD</span><h4>Real-World Data</h4>
+     <p>The raw <b>data</b> itself, collected during everyday healthcare \u2014 not in a controlled study. Examples: electronic health records, insurance claims, disease registries, wearables.</p></div>
+   <div class="dcard rwe"><span class="dc-tag">RWE</span><h4>Real-World Evidence</h4>
+     <p>The <b>conclusions</b> about how a treatment is used, and its benefits or risks, that you get by carefully <b>analysing</b> real-world data.</p></div>
+ </div>
+ <div class="callout"><div class="co-t">\u{1F4A1} One-line memory hook</div>
+   <p><b>Data is the ingredient; evidence is the meal.</b> RWD is the raw material. RWE is what you cook up after cleaning, combining, and analysing it.</p></div>
+
+ <h2>Why does this matter?</h2>
+ <p>Clinical trials are powerful but live in a bubble: a small, carefully selected group of patients, watched under strict conditions, for a limited time. The real world is the opposite \u2014 huge, diverse, and messy. RWD lets us ask questions a trial can\u2019t answer cheaply:</p>
+ <p class="muted">Does this drug work as well in elderly patients with three other conditions? What happens after five years of use? How does it compare to the cheaper alternative doctors already prescribe? Real-world data holds the answers \u2014 if we can read them.</p>
+
+ <div class="diagram">
+   ${funnelSVG()}
+   <div class="dg-cap">From scattered real-world data sources to a single, trusted evidence signal.</div>
+ </div>
+
+ <h2>Where it sits in the medicine lifecycle</h2>
+ <p>RWE began as a <b>post-approval</b> activity \u2014 monitoring safety once a drug was on the market. Today it stretches across the whole journey: spotting unmet needs early, supporting regulatory submissions (even standing in for a control group in some cases), and proving value to the insurers who decide what gets paid for.</p>
+ <div class="diagram">
+   ${lifecycleSVG()}
+   <div class="dg-cap">Real-world evidence spans the entire life sciences lifecycle \u2014 lightest in early research, strongest once a medicine reaches real patients.</div>
+ </div>
+ <div class="callout violet"><div class="co-t">\u{1F517} The Excelra connection</div>
+   <p>Excelra\u2019s clinical data analytics and data-engineering teams turn raw patient data into decision-ready insight \u2014 exactly the journey this course walks through. You\u2019re learning the business you\u2019re part of.</p></div>
+
+ ${checkBlock(0)}
+ ${pageNav(0)}
+`;}
+
+function mod2(){return `
+ <div class="eyebrow"><span class="mono">MODULE 02</span> \u2022 Business Overview</div>
+ <h1>The business of <em>real-world evidence</em></h1>
+ <p class="lead">Before the data and the tools, one question matters most: why does anyone pay for this work? Understanding the business reason is what separates someone who runs a pipeline from someone who knows why it exists.</p>
+
+ ${narrateBar('Module 2: Business Overview')}
+
+ <h2>What is the RWE function?</h2>
+ <p>The real-world evidence function is the discipline of <b>turning everyday healthcare data into answers</b> that a clinical trial cannot, or cannot affordably, provide. It sits at the meeting point of medicine, data science, and business strategy.</p>
+
+ <h2>Why does it exist?</h2>
+ <p>A clinical trial is the gold standard for proving a drug <i>can</i> work. But it has four built-in limits:</p>
+ <ul class="obj-list">
+   <li><span class="on">\u2715</span><span><b>Narrow.</b> Strict eligibility rules exclude the elderly, the very sick, and people on other medications \u2014 i.e. most real patients.</span></li>
+   <li><span class="on">\u2715</span><span><b>Expensive &amp; slow.</b> Trials cost hundreds of millions and take years.</span></li>
+   <li><span class="on">\u2715</span><span><b>Short.</b> They usually end at approval, so long-term effects stay unknown.</span></li>
+   <li><span class="on">\u2715</span><span><b>Artificial.</b> Tightly controlled conditions don\u2019t mirror busy real-world care.</span></li>
+ </ul>
+ <p>RWE exists to fill those gaps \u2014 to show how a medicine actually performs once it meets the messy, diverse real world.</p>
+
+ <h2>What it\u2019s trying to achieve</h2>
+ <div class="cards2">
+   <div class="dcard rwd"><span class="dc-tag">REGULATORY</span><h4>Support approvals &amp; labels</h4><p>Generate evidence for new uses, post-marketing commitments, or an external control arm where a placebo group isn\u2019t ethical.</p></div>
+   <div class="dcard rwe"><span class="dc-tag">MARKET ACCESS</span><h4>Prove value to payers</h4><p>Show insurers and health systems that a treatment is worth funding (the world of HEOR \u2014 health economics &amp; outcomes research).</p></div>
+   <div class="dcard rwd"><span class="dc-tag">SAFETY</span><h4>Watch for risks</h4><p>Detect rare side effects across millions of patients that a small trial would never reveal.</p></div>
+   <div class="dcard rwe"><span class="dc-tag">STRATEGY</span><h4>Guide decisions</h4><p>Inform medical, clinical, and commercial teams about real treatment patterns and unmet needs.</p></div>
+ </div>
+
+ <h2>Real-world relevance</h2>
+ <p>Regulators like the FDA and EMA now have formal frameworks for using RWE in their decisions, and payers increasingly demand it before agreeing to pay. That shift turned RWE from a niche safety activity into a core part of how modern medicines are developed, approved, and funded.</p>
+ <div class="callout magenta"><div class="co-t">\u{1F517} The Excelra connection</div>
+   <p>This is squarely Excelra\u2019s territory: curating and analysing real patient data into evidence that clients use to make regulatory, access, and clinical decisions. The business need you just learned is the business Excelra serves.</p></div>
+
+ ${checkBlock(1)}
+ ${pageNav(1)}
+`;}
+
+/* ============================================================
+   SHARED UI PIECES
+============================================================ */
+function narrateBar(label){return `
+ <div class="narrate">
+   <button class="play" id="narrBtn" onclick="toggleNarration(this)" aria-label="Play narration">\u25B6</button>
+   <span class="ntxt">Listen to this module \u2014 <b>${label}</b></span>
+ </div>`;}
+
+function checkBlock(i){
+  const m=COURSE[i], c=m.check, passed=state.checks[i];
+  return `
+ <div class="kc" id="kc-${i}">
+   <div class="kc-head"><span class="kc-badge">\u2713 Knowledge Check</span><span class="kc-xp">+${c.xp} XP</span></div>
+   <div class="q">${c.q}</div>
+   <div id="opts-${i}">
+     ${c.opts.map((o,j)=>`<button class="opt" onclick="answer(${i},${j})" ${passed!=null?'disabled':''}><span class="ok">${String.fromCharCode(65+j)}</span><span>${o}</span></button>`).join('')}
+   </div>
+   <div class="kc-fb" id="fb-${i}"></div>
+ </div>`;
+}
+
+function pageNav(i){
+  const prev=i>0, nextMod=COURSE[i+1], unlocked=state.checks[i]!=null;
+  return `
+ <div class="pagenav">
+   ${prev?`<button class="btn ghost" onclick="go(${i-1})">\u2190 Previous</button>`:`<span></span>`}
+   ${nextMod?`<button class="btn prim" id="nextBtn-${i}" onclick="go(${i+1})" ${unlocked?'':'disabled'}>
+       <span>${unlocked?'Next module':'Pass the check to continue'}</span> <span>\u2192</span></button>`
+     :`<button class="btn prim">Finish \u2192</button>`}
+ </div>`;
+}
+
+/* SVG: data sources funnel into one signal */
+function funnelSVG(){return `
+ <svg viewBox="0 0 600 220" style="width:100%;height:auto" role="img" aria-label="Data sources converging into evidence">
+   <defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="0">
+     <stop offset="0" stop-color="#11B5C4"/><stop offset="1" stop-color="#E84F9C"/></linearGradient></defs>
+   ${[
+     ['EHR',40],['Claims',86],['Registries',132],['Wearables',178]
+   ].map(([t,y],k)=>`
+     <g>
+       <rect x="20" y="${y-15}" width="118" height="30" rx="8" fill="#fff" stroke="var(--line)"/>
+       <text x="79" y="${y+5}" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" fill="#5A6781">${t}</text>
+       <path d="M138 ${y} C 220 ${y}, 240 110, 320 110" fill="none" stroke="var(--noise)" stroke-width="2" stroke-dasharray="3 4"/>
+     </g>`).join('')}
+   <circle cx="335" cy="110" r="30" fill="#F4F7FB" stroke="var(--violet)" stroke-width="2"/>
+   <text x="335" y="106" text-anchor="middle" font-family="Space Grotesk" font-size="12" font-weight="600" fill="#6C5CE7">curate</text>
+   <text x="335" y="121" text-anchor="middle" font-family="Space Grotesk" font-size="12" font-weight="600" fill="#6C5CE7">&amp; analyse</text>
+   <path d="M365 110 L 470 110" stroke="url(#fg)" stroke-width="3" marker-end="url(#ar)"/>
+   <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#E84F9C"/></marker></defs>
+   <rect x="472" y="88" width="108" height="44" rx="10" fill="url(#fg)"/>
+   <text x="526" y="108" text-anchor="middle" font-family="Space Grotesk" font-size="13" font-weight="700" fill="#fff">EVIDENCE</text>
+   <text x="526" y="123" text-anchor="middle" font-family="Inter" font-size="10" fill="#ffffff" opacity=".9">decision-ready</text>
+ </svg>`;}
+
+/* SVG: where RWD/RWE sits across the life sciences lifecycle */
+function lifecycleSVG(){
+  const stages=[
+    ['Discovery',['unmet need,','disease burden']],
+    ['Preclinical',['patient','insights']],
+    ['Clinical Trials',['trial design,','external controls']],
+    ['Regulatory',['submission','support, labels']],
+    ['Launch & Access',['payer value','(HEOR)']],
+    ['Post-Market',['safety &','effectiveness']],
+  ];
+  const cx=i=>72+i*113;
+  return `
+ <svg viewBox="0 0 720 215" style="width:100%;height:auto" role="img" aria-label="Where real-world evidence sits in the life sciences lifecycle">
+   <defs>
+     <linearGradient id="wlife" x1="0" y1="0" x2="1" y2="0">
+       <stop offset="0" stop-color="#6C5CE7" stop-opacity=".16"/>
+       <stop offset=".55" stop-color="#6C5CE7" stop-opacity=".55"/>
+       <stop offset="1" stop-color="#E84F9C" stop-opacity="1"/>
+     </linearGradient>
+     <marker id="lcar" markerWidth="9" markerHeight="9" refX="5" refY="3" orient="auto"><path d="M0 0 L5 3 L0 6 Z" fill="#B7C0D4"/></marker>
+   </defs>
+   <line x1="64" y1="60" x2="652" y2="60" stroke="#D8E0EC" stroke-width="2" marker-end="url(#lcar)"/>
+   ${stages.map((s,i)=>`
+     <g>
+       <rect x="${cx(i)-52}" y="42" width="104" height="36" rx="9" fill="#fff" stroke="var(--line)"/>
+       <text x="${cx(i)}" y="64" text-anchor="middle" font-family="Space Grotesk" font-size="10.5" font-weight="600" fill="#28324A">${s[0]}</text>
+       <text x="${cx(i)}" y="100" text-anchor="middle" font-family="Inter" font-size="8.5" fill="#8C97AE">${s[1][0]}</text>
+       <text x="${cx(i)}" y="111" text-anchor="middle" font-family="Inter" font-size="8.5" fill="#8C97AE">${s[1][1]}</text>
+     </g>`).join('')}
+   <rect x="20" y="134" width="680" height="34" rx="9" fill="url(#wlife)"/>
+   <text x="36" y="155" font-family="Space Grotesk" font-size="12" font-weight="700" fill="#3D2EAE">REAL-WORLD EVIDENCE</text>
+   <text x="684" y="155" text-anchor="end" font-family="Inter" font-size="10" font-weight="600" fill="#fff" opacity=".97">strongest after launch \u2192</text>
+   <text x="360" y="195" text-anchor="middle" font-family="Inter" font-size="11" fill="#5A6781" font-style="italic">Once a post-approval activity \u2014 now touching every stage of the journey.</text>
+ </svg>`;
+}
+
+/* ============================================================
+   RENDER
+============================================================ */
+function render(){
+  renderNav(); renderHUD();
+  const m=COURSE[state.current];
+  const view=document.getElementById('view');
+  if(m.type==='locked'){
+    view.innerHTML=`<div class="locked-page">
+      <div class="lk-ico">\u{1F512}</div>
+      <h2>Module ${String(m.id+1).padStart(2,'0')} \u2014 ${m.title}</h2>
+      <p>This module is part of the full course and is coming next in the build. Finish the modules above to unlock it.</p>
+    </div>`;
+  }else{
+    view.innerHTML=m.body();
+    requestAnimationFrame(()=>buildWaveHero());
+  }
+  document.getElementById('scroll').scrollTop=0;
+  persist();
+}
+
+function renderNav(){
+  const list=document.getElementById('navList');
+  list.innerHTML=COURSE.map((m,i)=>{
+    const done=state.done[i], active=i===state.current;
+    const locked=isLocked(i);
+    const cls=['mod',active?'active':'',done?'done':'',locked?'locked':''].join(' ');
+    const num=done?'\u2713':(locked?'\u{1F512}':String(i+1).padStart(2,'0'));
+    return `<button class="${cls}" ${locked?'':`onclick="go(${i})"`}>
+      <span class="mod-num">${num}</span>
+      <span class="mod-label">${m.short}</span>
+    </button>`;
+  }).join('');
+}
+
+function isLocked(i){
+  if(i===0) return false;
+  // unlock module i only when previous module's check is passed
+  const prev=COURSE[i-1];
+  if(prev.type==='locked') return true; // stub modules stay locked in this build
+  return state.checks[i-1]==null;
+}
+
+function renderHUD(){
+  document.getElementById('xpVal').textContent=state.xp;
+  const lvl=Object.keys(state.done).length+1;
+  document.getElementById('lvlVal').textContent=Math.min(lvl,12);
+  document.getElementById('badgeVal').textContent=state.badges.length;
+  const total=COURSE.length;
+  const pct=Math.round(Object.keys(state.done).length/total*100);
+  document.getElementById('pctVal').textContent=pct+'% complete';
+  setWave(pct/100);
+}
+
+/* ============================================================
+   WAVEFORM  (noise -> signal, also the progress bar)
+============================================================ */
+let WAVE_LEN=0;
+function buildWave(){
+  const W=1000,H=80,mid=40,pts=[];
+  for(let x=0;x<=W;x+=8){
+    const t=x/W;
+    const amp=30*(1-t)+3*t;                 // noise calms toward the right
+    const freq=t<.5?0.09:0.05;
+    const noise=(Math.random()-.5)*(1-t)*10*(t<.6?1:0.2);
+    const y=mid+Math.sin(x*freq)*amp*(1-t*0.3)+noise;
+    pts.push([x,y]);
+  }
+  let d='M'+pts[0][0]+' '+pts[0][1].toFixed(1);
+  for(let i=1;i<pts.length;i++) d+=' L'+pts[i][0]+' '+pts[i][1].toFixed(1);
+  document.getElementById('waveBg').setAttribute('d',d);
+  const fg=document.getElementById('waveFg');
+  fg.setAttribute('d',d);
+  WAVE_LEN=fg.getTotalLength();
+  fg.style.strokeDasharray=WAVE_LEN;
+  fg.style.strokeDashoffset=WAVE_LEN;
+}
+function setWave(frac){
+  const fg=document.getElementById('waveFg');
+  if(!WAVE_LEN) return;
+  fg.style.transition='stroke-dashoffset .7s cubic-bezier(.4,0,.2,1)';
+  fg.style.strokeDashoffset=WAVE_LEN*(1-Math.max(0.001,frac));
+}
+function buildWaveHero(){ /* placeholder hook for modal hero wave */ }
+
+/* ============================================================
+   INTERACTIONS
+============================================================ */
+function go(i){
+  if(isLocked(i)){ toast('lvl','\u{1F512}','Complete the previous module first'); return; }
+  state.current=i; toggleNav(false); render();
+}
+
+function answer(i,j){
+  const m=COURSE[i], c=m.check;
+  const opts=document.querySelectorAll(`#opts-${i} .opt`);
+  opts.forEach(o=>o.disabled=true);
+  const correct=j===c.answer;
+  opts[c.answer].classList.add('correct');
+  if(!correct) opts[j].classList.add('wrong');
+  const fb=document.getElementById('fb-'+i);
+  fb.className='kc-fb show '+(correct?'good':'bad');
+  fb.innerHTML=(correct?'<b>Correct! </b>':'<b>Not quite. </b>')+c.explain;
+
+  if(state.checks[i]==null){
+    state.checks[i]=correct;
+    const gain=correct?c.xp:Math.round(c.xp/2);
+    addXP(gain);
+    if(!state.done[i]){ state.done[i]=true; }
+    // unlock & enable next
+    const nb=document.getElementById('nextBtn-'+i);
+    if(nb){ nb.disabled=false; nb.querySelector('span').textContent='Next module'; }
+    checkBadges(i);
+    renderNav(); renderHUD();
+    if(correct) toast('xp','\u2713','+'+gain+' XP \u2014 nice work');
+    else toast('xp','\u00BD','+'+gain+' XP \u2014 keep going');
+  }
+  persist();
+}
+
+function addXP(n){ state.xp+=n; persist(); }
+
+function checkBadges(i){
+  const award=(k)=>{ if(!state.badges.includes(k)){ state.badges.push(k);
+    toast('badge',BADGES[k].icon,'Badge unlocked: '+BADGES[k].name); } };
+  if(state.done[0]) award('first');
+  if(Object.values(state.checks).filter(v=>v!=null).length>=2) award('detective');
+  if(Object.keys(state.done).length>=6) award('half');
+}
+
+/* ============================================================
+   NARRATION  (Web Speech API)
+============================================================ */
+const NARR={
+ 0:'Welcome to Real World Data and Evidence. Every day, millions of patients generate data simply by living their lives. This course shows how that messy, real-world trail becomes evidence that helps safer medicines reach the people who need them. Real World Data is the raw data collected during everyday care, such as health records, insurance claims, registries, and wearables. Real World Evidence is the conclusions we draw after analysing that data. Remember: data is the ingredient, evidence is the meal.',
+ 1:'Why does anyone pay for real-world evidence work? A clinical trial proves a drug can work, but it is narrow, expensive, short, and artificial. Real-world evidence fills those gaps. It supports regulatory approvals, proves value to the payers who fund treatments, watches for rare safety risks, and guides clinical and commercial strategy. Regulators like the F D A and E M A now have formal frameworks for using it, which makes real-world evidence a core part of how modern medicines are developed and funded.'
+};
+let speaking=false;
+function toggleNarration(btn){
+  if(!('speechSynthesis' in window)){ toast('lvl','\u{1F507}','Narration isn\u2019t supported in this browser'); return; }
+  const text=NARR[state.current]||'';
+  if(speaking){ speechSynthesis.cancel(); speaking=false; btn.textContent='\u25B6'; return; }
+  const u=new SpeechSynthesisUtterance(text);
+  u.rate=.98; u.pitch=1;
+  u.onend=()=>{ speaking=false; btn.textContent='\u25B6'; };
+  speechSynthesis.cancel(); speechSynthesis.speak(u); speaking=true; btn.textContent='\u275A\u275A';
+}
+
+/* ============================================================
+   TOASTS + NAV DRAWER
+============================================================ */
+function toast(type,icon,msg){
+  const w=document.getElementById('toasts');
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  t.innerHTML=`<span class="ti">${icon}</span><span>${msg}</span>`;
+  w.appendChild(t);
+  setTimeout(()=>{ t.style.transition='opacity .4s,transform .4s'; t.style.opacity='0'; t.style.transform='translateY(10px)'; setTimeout(()=>t.remove(),400); },2600);
+}
+function toggleNav(open){
+  document.getElementById('sidebar').classList.toggle('open',open);
+  document.getElementById('scrim').classList.toggle('open',open);
+}
+
+/* ============================================================
+   WELCOME MODAL
+============================================================ */
+function showWelcome(){
+  const host=document.getElementById('modalHost');
+  host.innerHTML=`<div class="modal-bg"><div class="modal">
+    <svg class="wave-hero" viewBox="0 0 400 54" preserveAspectRatio="none"><path d="M0 40 Q 20 5 40 38 T 80 30 T 120 36 T 160 27 L 400 27" fill="none" stroke="url(#wgrad)" stroke-width="3" stroke-linecap="round"/></svg>
+    <h2>Signal from the Noise</h2>
+    <p>An interactive course on Real-World Data &amp; Evidence. Earn XP, unlock badges, and finish with a certificate. First \u2014 what should we call you?</p>
+    <input id="nameIn" placeholder="Your name" maxlength="40" value="${state.name||''}">
+    <button class="btn prim" style="width:100%;justify-content:center" onclick="startCourse()">Start the course \u2192</button>
+  </div></div>`;
+  setTimeout(()=>{const n=document.getElementById('nameIn'); n&&n.focus();},100);
+}
+function startCourse(){
+  const n=document.getElementById('nameIn');
+  state.name=(n&&n.value.trim())||'Learner'; persist();
+  document.getElementById('modalHost').innerHTML='';
+}
+
+/* ============================================================
+   BOOT
+============================================================ */
+window.addEventListener('load',async ()=>{
+  buildWave();
+  try{
+    const r=await fetch('/api/me');
+    if(r.status===401){ location.href='/'; return; }
+    const me=await r.json();
+    if(me&&me.name){ state.name=me.name; persist();
+      const hi=document.getElementById('hiUser');
+      if(hi) hi.textContent='Hi, '+me.name.split(' ')[0]; }
+  }catch(e){ /* offline: keep local state */ }
+  render();
+});
+window.addEventListener('beforeunload',()=>{ try{speechSynthesis.cancel();}catch(e){} });
+</script>
+</body>
+</html>
