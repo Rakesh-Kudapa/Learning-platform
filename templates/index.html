@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RWD/RWE Course — Backend Running</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{--grad:linear-gradient(90deg,#11B5C4,#6C5CE7,#E84F9C)}
+  *{margin:0;box-sizing:border-box}
+  body{font-family:'Inter',sans-serif;background:#F4F7FB;color:#131B2E;min-height:100vh;display:grid;place-items:center;padding:24px}
+  .card{background:#fff;border:1px solid #E3E9F2;border-radius:18px;max-width:560px;padding:38px;box-shadow:0 12px 40px rgba(19,27,46,.08)}
+  .logo{font-family:'Space Grotesk';font-weight:700;font-size:22px}
+  .logo span{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .ok{display:inline-flex;align-items:center;gap:8px;margin:14px 0 18px;font-weight:600;color:#0c7a52;font-size:14px}
+  .ok .d{width:9px;height:9px;border-radius:50%;background:#15B57E;box-shadow:0 0 0 4px rgba(21,181,126,.15)}
+  h1{font-family:'Space Grotesk';font-size:24px;margin-bottom:8px}
+  p{color:#5A6781;line-height:1.6;font-size:15px}
+  .next{margin-top:22px;border-top:1px solid #EEF2F8;padding-top:18px}
+  .next h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#8C97AE;margin-bottom:12px}
+  .step{display:flex;gap:10px;align-items:center;font-size:14px;padding:5px 0}
+  .step .n{font-family:'IBM Plex Mono';font-size:12px;background:#F4F7FB;border:1px solid #E3E9F2;border-radius:6px;padding:2px 8px;color:#6C5CE7}
+  code{font-family:'IBM Plex Mono';background:#F4F7FB;padding:2px 7px;border-radius:6px;font-size:13px}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">excel<span>ra</span></div>
+    <div class="ok"><span class="d"></span> Backend running — database initialised</div>
+    <h1>RWD / RWE Interactive Course</h1>
+    <p>Step 1 scaffold is live. The Flask app booted, loaded config from <code>.env</code>, and created all tables from <code>models.py</code> in <code>instance/course.db</code>.</p>
+    <div class="next">
+      <h2>Next on the roadmap</h2>
+      <div class="step"><span class="n">2</span> Auth — login &amp; register</div>
+      <div class="step"><span class="n">3</span> Serve the course + sync progress</div>
+      <div class="step"><span class="n">4</span> Pre / post knowledge assessment</div>
+      <div class="step"><span class="n">5</span> Per-module AI doubt tutor</div>
+    </div>
+  </div>
+</body>
+</html>
