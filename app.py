@@ -12,12 +12,12 @@ Run:
     -> http://localhost:5000
 """
 import os
-from flask import (Flask, redirect, url_for, send_from_directory,
+from flask import (Flask, request, redirect, url_for, send_from_directory,
                    jsonify, render_template)
 from flask_login import login_required, current_user
 from dotenv import load_dotenv
 
-from models import db, login_manager
+from models import db, login_manager, KnowledgeRating, Feedback, Contribution
 
 load_dotenv()
 
@@ -63,6 +63,80 @@ def create_app():
     @login_required
     def api_me():
         return jsonify({"name": current_user.name, "email": current_user.email})
+
+    # ------------------------------------------------------------
+    #  Pre/post knowledge self-assessment  (feat/pre-post-feedback-knowledge)
+    # ------------------------------------------------------------
+    @app.route("/api/assessment", methods=["GET", "POST"])
+    @login_required
+    def api_assessment():
+        if request.method == "POST":
+            payload = request.get_json(silent=True) or {}
+            stage = payload.get("stage")
+            level = payload.get("level")
+            if stage not in ("pre", "post") or level not in ("beginner", "medium", "advanced"):
+                return jsonify({"error": "stage must be pre|post, level must be beginner|medium|advanced"}), 400
+            db.session.add(KnowledgeRating(user_id=current_user.id, stage=stage, level=level))
+            db.session.commit()
+            return jsonify({"ok": True})
+
+        def _latest(stage):
+            row = (KnowledgeRating.query
+                   .filter_by(user_id=current_user.id, stage=stage)
+                   .order_by(KnowledgeRating.created_at.desc()).first())
+            return {"level": row.level, "at": row.created_at.isoformat()} if row else None
+
+        return jsonify({"pre": _latest("pre"), "post": _latest("post")})
+
+    # ------------------------------------------------------------
+    #  End-of-course feedback  (feat/pre-post-feedback-knowledge)
+    # ------------------------------------------------------------
+    @app.route("/api/feedback", methods=["POST"])
+    @login_required
+    def api_feedback():
+        payload = request.get_json(silent=True) or {}
+        try:
+            rating = int(payload.get("rating"))
+        except (TypeError, ValueError):
+            rating = None
+        if rating is None or not (1 <= rating <= 5):
+            return jsonify({"error": "rating must be an integer 1-5"}), 400
+
+        db.session.add(Feedback(
+            user_id=current_user.id,
+            rating=rating,
+            experience=(payload.get("experience") or "").strip()[:2000],
+            suggestions=(payload.get("suggestions") or "").strip()[:2000],
+        ))
+        db.session.commit()
+        return jsonify({"ok": True})
+
+    # ------------------------------------------------------------
+    #  Crowdsourced "extra knowledge" -> Learner Contributions module
+    #  (feat/pre-post-feedback-knowledge)
+    # ------------------------------------------------------------
+    @app.route("/api/contributions", methods=["GET", "POST"])
+    @login_required
+    def api_contributions():
+        if request.method == "POST":
+            payload = request.get_json(silent=True) or {}
+            content = (payload.get("content") or "").strip()
+            if not content:
+                return jsonify({"error": "content is required"}), 400
+            title = (payload.get("title") or "").strip()[:140] or "A tip from a fellow learner"
+            db.session.add(Contribution(
+                user_id=current_user.id, title=title,
+                content=content[:4000], status="approved"))
+            db.session.commit()
+            return jsonify({"ok": True})
+
+        rows = (Contribution.query.filter_by(status="approved")
+                .order_by(Contribution.created_at.desc()).all())
+        return jsonify([
+            {"author_name": r.user.name, "title": r.title, "content": r.content,
+             "created_at": r.created_at.strftime("%d %b %Y")}
+            for r in rows
+        ])
 
     @app.route("/health")
     def health():

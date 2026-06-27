@@ -193,10 +193,10 @@ return `401` (for `fetch`). Front end treats `401` as "go to /login".
 | GET | `/api/progress` | — | saved state JSON (or `{}`) |
 | POST | `/api/progress` | full state JSON | `{ok:true}` |
 
-### Assessment — **PLANNED** (`feat/pre-post-assessment`)
+### Assessment — **BUILT** (`feat/pre-post-feedback-knowledge`)
 | Method | Path | Body | Returns |
 |---|---|---|---|
-| GET | `/api/assessment` | — | `{pre:{level}|null, post:{level}|null}` |
+| GET | `/api/assessment` | — | `{pre:{level,at}|null, post:{level,at}|null}` |
 | POST | `/api/assessment` | `{stage:'pre'|'post', level}` | `{ok:true}` |
 
 ### AI doubt tutor — **PLANNED** (`feat/ask-doubt-tutor`)
@@ -219,12 +219,12 @@ to the client. Rate-limit lightly (e.g. per-user cooldown) to protect the free t
 `PASS_MARK = 0.70`). The browser never receives correct answers. Certificate is
 stamped with `current_user.name`, date, and score; printable / downloadable.
 
-### Feedback — **PLANNED** (`feat/feedback-ux`)
+### Feedback — **BUILT** (`feat/pre-post-feedback-knowledge`)
 | Method | Path | Body | Returns |
 |---|---|---|---|
 | POST | `/api/feedback` | `{rating, experience, suggestions}` | `{ok:true}` |
 
-### Community knowledge — **PLANNED** (`feat/community-knowledge`)
+### Community knowledge — **BUILT** (`feat/pre-post-feedback-knowledge`)
 | Method | Path | Body | Returns |
 |---|---|---|---|
 | GET | `/api/contributions` | — | approved `[{author_name,title,content,created_at}]` |
@@ -360,12 +360,10 @@ One feature = one branch off `main`; merge when green. Content authoring runs in
 
 1. `feat/auth` — login/register/logout, course behind login wall ............. **BUILT ✅**
 2. `feat/course-progress` — `/api/progress`; front end loads/saves state to DB
-3. `feat/pre-post-assessment` — pre gate + post screen; `/api/assessment`; growth view
+3. `feat/pre-post-feedback-knowledge` — pre/post knowledge gate + growth view; end-of-course feedback; crowdsourced contributions + Learner Contributions page ... **BUILT ✅**
 4. `feat/ask-doubt-tutor` — per-module doubt panel; `/api/ask` → `llm.py`; logs to `doubts`
 5. `feat/final-test-certificate` — `/api/test`, `/api/test/submit` (server-scored), `/certificate`
-6. `feat/feedback-ux` — post-course feedback form; `/api/feedback`
-7. `feat/community-knowledge` — `/api/contributions`; Module 13 renders them
-8. `content/modules-3-12` — author remaining modules + interactions (parallel)
+6. `content/modules-3-12` — author remaining modules + interactions (parallel)
 
 **Definition of done per branch:** endpoint(s) + front-end wiring + a short smoke
 test + README/ARCHITECTURE note updated.
