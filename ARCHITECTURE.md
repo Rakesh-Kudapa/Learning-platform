@@ -296,6 +296,15 @@ quiz round · 12-question final assessment.
 
 ## 9. Course Content Model (RWD/RWE)
 
+> **Content authoring workflow.** Lesson content is authored by the project
+> owner (subject-matter expert) as plain-text files in `content/*.md`, using
+> `content/TEMPLATE.md`. Claude Code's role is purely mechanical: read a
+> content file and wire it into `templates/course.html` (new `modN()` function,
+> following the exact pattern of `mod1()`/`mod2()`) and `course_data.py`
+> (`MODULE_TITLES`, `MODULE_CONTEXT`). **Facts, definitions, and explanations in
+> the content file must not be altered.** See `CLAUDE.md` → "Division of labor."
+> `content/module-03-end-to-end-process.md` is a worked example, ready to wire in.
+
 12 mandatory modules (from the assignment) + a 13th crowdsourced module. Each content
 module = intro prose + original SVG diagram(s) + knowledge check + doubt panel +
 narration text.
