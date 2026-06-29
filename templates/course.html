@@ -210,7 +210,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .gate-card p{color:var(--ink-soft);font-size:14.5px;margin-bottom:24px}
 .level-grid{display:grid;gap:11px;text-align:left}
 .level-card{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1.5px solid var(--line);
-  border-radius:var(--r);background:var(--surface-2);transition:.15s;width:100%}
+  border-radius:var(--r);background:var(--surface-2);transition:.15s;width:100%;cursor:pointer;font-family:inherit}
 .level-card:hover{border-color:var(--violet);background:#fff;transform:translateY(-1px)}
 .level-card .lc-ico{flex:none;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;
   font-size:17px;background:var(--surface);border:1px solid var(--line)}
@@ -1261,8 +1261,8 @@ window.addEventListener('load',async ()=>{
     }
   }catch(e){ /* offline: fall back to local state */ }
 
-  render();
   if(!state.preLevel) showPreGate();
+  render();
 });
 window.addEventListener('beforeunload',()=>{ try{speechSynthesis.cancel();}catch(e){} });
 </script>
