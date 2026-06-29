@@ -77,3 +77,24 @@ python app.py               # http://localhost:5000
 > with a smoke test, then merge it. (2) After that, start
 > `feat/ask-doubt-tutor` per ARCHITECTURE.md §6."
 
+## Pending feature: explainer videos (`feat/explainer-videos`)
+Each module's narration bar (the `narrateBar()` function in `course.html` —
+the pill with the 🔊 Listen button) needs a second action added alongside it:
+**▶ Watch video**.
+
+- **Video files:** static mp4s placed at `static/videos/module-0X.mp4`
+  (2-digit zero-padded module number, e.g. `module-04.mp4`). Create the
+  `static/videos/` folder; Flask serves it automatically at `/static/videos/...`.
+- **UI:** extend `narrateBar()` so it renders the existing Listen button
+  plus a "▶ Watch video" button in the same pill row. Clicking Watch toggles
+  an inline `<video controls>` element directly below the bar (rounded
+  corners, full width, matching the existing `.diagram` card style).
+- **Graceful fallback:** most modules won't have a video yet. Don't hard-fail
+  if the file is missing — either check existence server-side (a small
+  `/api/has-video/<n>` check, or simplest: just attempt to load it and use
+  the `<video>` element's `onerror` to hide the Watch button) so an absent
+  video never breaks the page.
+- **Source of each video's script:** the matching `content/module-0X-*.md`
+  file's "Video script (Steve.ai)" section.
+- This satisfies the assignment's "AI-generated explainer video" requirement,
+  alongside the existing Web Speech narration.

@@ -10,10 +10,23 @@ If no key is configured, ask_tutor() returns a friendly setup message instead
 of crashing — so the rest of the app keeps working during development.
 """
 import os
+import json
 import requests
 from course_data import MODULE_CONTEXT, MODULE_TITLES
 
 TIMEOUT = 30
+
+
+def _ui_settings():
+    """Load settings entered via the UI (instance/llm_config.json)."""
+    try:
+        cfg_path = os.path.join(
+            os.path.dirname(__file__), "instance", "llm_config.json"
+        )
+        with open(cfg_path, "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
 
 SYSTEM_PROMPT = (
     "You are a warm, encouraging tutor inside an Excelra e-learning course on "
@@ -37,13 +50,16 @@ def _prompt(module_id, question):
 
 
 def ask_tutor(module_id, question):
-    provider = os.getenv("LLM_PROVIDER", "gemini").lower().strip()
+    ui = _ui_settings()
+    provider = ui.get("llm_provider") or os.getenv("LLM_PROVIDER", "gemini")
+    provider = provider.lower().strip()
+    ui_key = ui.get("api_key", "")
     prompt = _prompt(module_id, question)
     try:
         if provider == "gemini":
-            return _gemini(prompt)
+            return _gemini(prompt, ui_key)
         if provider == "groq":
-            return _groq(prompt)
+            return _groq(prompt, ui_key)
         if provider == "ollama":
             return _ollama(prompt)
         return f"Unknown LLM_PROVIDER '{provider}'. Use gemini, groq, or ollama."
@@ -53,8 +69,8 @@ def ask_tutor(module_id, question):
         return f"Tutor error: {e}"
 
 
-def _gemini(prompt):
-    key = os.getenv("GEMINI_API_KEY", "").strip()
+def _gemini(prompt, ui_key=""):
+    key = ui_key or os.getenv("GEMINI_API_KEY", "").strip()
     if not key:
         return ("AI tutor isn't set up yet. Add a free Gemini key to your .env file "
                 "(GEMINI_API_KEY) — get one at aistudio.google.com/app/apikey.")
@@ -67,8 +83,8 @@ def _gemini(prompt):
     return data["candidates"][0]["content"]["parts"][0]["text"].strip()
 
 
-def _groq(prompt):
-    key = os.getenv("GROQ_API_KEY", "").strip()
+def _groq(prompt, ui_key=""):
+    key = ui_key or os.getenv("GROQ_API_KEY", "").strip()
     if not key:
         return ("AI tutor isn't set up yet. Add a free Groq key to your .env file "
                 "(GROQ_API_KEY) — get one at console.groq.com/keys.")

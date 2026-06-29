@@ -12,12 +12,16 @@ Run:
     -> http://localhost:5000
 """
 import os
+import json
+import time
 from flask import (Flask, request, redirect, url_for, send_from_directory,
                    jsonify, render_template)
 from flask_login import login_required, current_user
 from dotenv import load_dotenv
 
-from models import db, login_manager, KnowledgeRating, Feedback, Contribution
+from functools import wraps
+from models import (db, login_manager, User, Progress, KnowledgeRating,
+                    Feedback, Contribution, Doubt, TestResult)
 
 load_dotenv()
 
@@ -137,6 +141,196 @@ def create_app():
              "created_at": r.created_at.strftime("%d %b %Y")}
             for r in rows
         ])
+
+    # ------------------------------------------------------------
+    #  LLM settings — enter API key from the UI
+    # ------------------------------------------------------------
+    _settings_path = os.path.join(app.instance_path, "llm_config.json")
+
+    def _load_settings():
+        try:
+            with open(_settings_path, "r") as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
+
+    def _save_settings(data):
+        with open(_settings_path, "w") as f:
+            json.dump(data, f)
+
+    @app.route("/api/settings", methods=["GET"])
+    @login_required
+    def api_settings_get():
+        s = _load_settings()
+        provider = s.get("llm_provider", os.getenv("LLM_PROVIDER", "gemini"))
+        key = s.get("api_key", "")
+        masked = ("" if not key else key[:4] + "•" * max(0, len(key) - 8) + key[-4:])
+        return jsonify({
+            "llm_provider": provider,
+            "api_key_masked": masked,
+            "has_key": bool(key),
+        })
+
+    @app.route("/api/settings", methods=["POST"])
+    @login_required
+    def api_settings_post():
+        payload = request.get_json(silent=True) or {}
+        provider = payload.get("llm_provider", "").strip().lower()
+        if provider not in ("gemini", "groq", "ollama"):
+            return jsonify({"error": "Provider must be gemini, groq, or ollama"}), 400
+        api_key = (payload.get("api_key") or "").strip()
+        if provider != "ollama" and not api_key:
+            return jsonify({"error": f"API key is required for {provider}"}), 400
+        _save_settings({"llm_provider": provider, "api_key": api_key})
+        return jsonify({"ok": True})
+
+    # ------------------------------------------------------------
+    #  AI doubt tutor  (feat/ask-doubt-tutor)
+    # ------------------------------------------------------------
+    _ask_cooldowns = {}          # user_id -> last request timestamp
+    ASK_COOLDOWN_SECS = 5        # min seconds between requests per user
+    ASK_MAX_QUESTION_LEN = 500
+
+    @app.route("/api/ask", methods=["POST"])
+    @login_required
+    def api_ask():
+        now = time.time()
+        uid = current_user.id
+        last = _ask_cooldowns.get(uid, 0)
+        if now - last < ASK_COOLDOWN_SECS:
+            return jsonify({"error": "Please wait a few seconds before asking again."}), 429
+
+        payload = request.get_json(silent=True) or {}
+        try:
+            module_id = int(payload.get("module_id"))
+        except (TypeError, ValueError):
+            return jsonify({"error": "module_id must be an integer"}), 400
+
+        from course_data import MODULE_TITLES
+        if module_id < 0 or module_id >= len(MODULE_TITLES):
+            return jsonify({"error": "Invalid module_id"}), 400
+
+        question = (payload.get("question") or "").strip()[:ASK_MAX_QUESTION_LEN]
+        if not question:
+            return jsonify({"error": "question is required"}), 400
+
+        _ask_cooldowns[uid] = now
+
+        from llm import ask_tutor
+        answer = ask_tutor(module_id, question)
+
+        db.session.add(Doubt(
+            user_id=uid, module_id=module_id,
+            question=question, answer=answer,
+        ))
+        db.session.commit()
+
+        return jsonify({"answer": answer})
+
+    # ------------------------------------------------------------
+    #  Admin dashboard
+    # ------------------------------------------------------------
+    ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "").strip().lower()
+
+    def admin_required(f):
+        @wraps(f)
+        @login_required
+        def decorated(*args, **kwargs):
+            if current_user.email.lower() != ADMIN_EMAIL:
+                return redirect(url_for("course"))
+            return f(*args, **kwargs)
+        return decorated
+
+    @app.route("/admin")
+    @admin_required
+    def admin_dashboard():
+        return render_template("admin.html")
+
+    @app.route("/api/admin/stats")
+    @admin_required
+    def api_admin_stats():
+        from sqlalchemy import func
+
+        users = User.query.order_by(User.created_at).all()
+
+        user_list = []
+        for u in users:
+            pre = (KnowledgeRating.query
+                   .filter_by(user_id=u.id, stage="pre")
+                   .order_by(KnowledgeRating.created_at.desc()).first())
+            post = (KnowledgeRating.query
+                    .filter_by(user_id=u.id, stage="post")
+                    .order_by(KnowledgeRating.created_at.desc()).first())
+            doubt_count = Doubt.query.filter_by(user_id=u.id).count()
+            contrib_count = Contribution.query.filter_by(user_id=u.id).count()
+            best_test = (TestResult.query
+                         .filter_by(user_id=u.id)
+                         .order_by(TestResult.score.desc()).first())
+            fb = (Feedback.query.filter_by(user_id=u.id)
+                  .order_by(Feedback.created_at.desc()).first())
+
+            user_list.append({
+                "id": u.id,
+                "name": u.name,
+                "email": u.email,
+                "joined": u.created_at.strftime("%Y-%m-%d %H:%M"),
+                "pre_level": pre.level if pre else None,
+                "post_level": post.level if post else None,
+                "doubts_asked": doubt_count,
+                "contributions": contrib_count,
+                "best_test_score": f"{best_test.score}/{best_test.total}" if best_test else None,
+                "test_passed": best_test.passed if best_test else None,
+                "feedback_rating": fb.rating if fb else None,
+            })
+
+        reg_dates = {}
+        for u in users:
+            day = u.created_at.strftime("%Y-%m-%d")
+            reg_dates[day] = reg_dates.get(day, 0) + 1
+
+        pre_dist = {"beginner": 0, "medium": 0, "advanced": 0}
+        post_dist = {"beginner": 0, "medium": 0, "advanced": 0}
+        for u in users:
+            pre = (KnowledgeRating.query
+                   .filter_by(user_id=u.id, stage="pre")
+                   .order_by(KnowledgeRating.created_at.desc()).first())
+            post = (KnowledgeRating.query
+                    .filter_by(user_id=u.id, stage="post")
+                    .order_by(KnowledgeRating.created_at.desc()).first())
+            if pre and pre.level in pre_dist:
+                pre_dist[pre.level] += 1
+            if post and post.level in post_dist:
+                post_dist[post.level] += 1
+
+        rating_dist = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+        for fb in Feedback.query.all():
+            if fb.rating in rating_dist:
+                rating_dist[fb.rating] += 1
+
+        from course_data import MODULE_TITLES
+        doubts_per_module = []
+        for i, title in enumerate(MODULE_TITLES):
+            count = Doubt.query.filter_by(module_id=i).count()
+            doubts_per_module.append({"module": title, "count": count})
+
+        test_results = TestResult.query.all()
+        passed = sum(1 for t in test_results if t.passed)
+        failed = len(test_results) - passed
+
+        return jsonify({
+            "total_users": len(users),
+            "total_doubts": Doubt.query.count(),
+            "total_contributions": Contribution.query.count(),
+            "total_feedback": Feedback.query.count(),
+            "total_tests": len(test_results),
+            "users": user_list,
+            "registrations_by_date": reg_dates,
+            "pre_knowledge": pre_dist,
+            "post_knowledge": post_dist,
+            "feedback_ratings": rating_dist,
+            "doubts_per_module": doubts_per_module,
+            "test_pass_fail": {"passed": passed, "failed": failed},
+        })
 
     @app.route("/health")
     def health():

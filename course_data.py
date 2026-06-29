@@ -22,7 +22,7 @@ MODULE_TITLES = [
     "Data Landscape",
     "Industry Standards",
     "Technology Ecosystem",
-    "Current Challenges",
+    "Current Industry Challenges",
     "Role of Data Engineering & AI",
     "Summary",
     "References",
@@ -43,6 +43,15 @@ MODULE_CONTEXT = {
         "label expansions, proves value to payers (HEOR / market access), detects "
         "rare safety signals, and guides clinical and commercial strategy. "
         "Regulators (FDA, EMA) have formal frameworks for using RWE."),
+    2: ("End-to-End Process. Real-world data travels through six stages before "
+        "it becomes trustworthy evidence: Collect (pull from EHRs, claims, "
+        "registries, wearables), Ingest (into one warehouse or data lake), "
+        "Standardize (common structure/vocabulary such as OMOP CDM or FHIR), "
+        "Curate & QC (fix errors, flag missing/duplicate records, document "
+        "changes), Analyse (statistics to answer a clinical question), and "
+        "Generate Evidence (package for a regulator, payer, or clinician). Key "
+        "activities include de-duplication, mapping to standard codes, cohort "
+        "definition, and documentation of every cleaning decision."),
 }
 
 # Whole-course final test. answer = index of the correct option.

@@ -1,0 +1,110 @@
+"""
+Smoke tests — verifies that key pages load, module 3 is wired, and /api/ask works.
+Run:  python test_smoke.py
+"""
+import sys, os, time
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+from app import create_app
+from models import db
+from course_data import MODULE_CONTEXT, MODULE_TITLES
+
+def smoke():
+    app = create_app()
+    app.config["TESTING"] = True
+
+    ok, fail = 0, 0
+
+    def check(name, cond):
+        nonlocal ok, fail
+        if cond:
+            ok += 1
+            print(f"  PASS  {name}")
+        else:
+            fail += 1
+            print(f"  FAIL  {name}")
+
+    with app.test_client() as c:
+        r = c.get("/health")
+        check("GET /health returns 200", r.status_code == 200)
+
+        r = c.get("/course")
+        check("GET /course redirects when not logged in", r.status_code in (302, 301))
+
+        email = f"smoke{int(time.time()*1000)}@test.local"
+        r = c.post("/register", data={"name": "SmokeTest", "email": email, "password": "test1234"}, follow_redirects=True)
+        check("POST /register succeeds", r.status_code == 200)
+
+        r = c.get("/course")
+        check("GET /course returns 200 after login", r.status_code == 200)
+
+        html = r.data.decode()
+        check("course.html contains mod3 function", "function mod3()" in html)
+        check("course.html contains MODULE 03 eyebrow", "MODULE 03" in html)
+        check("course.html contains pipeline SVG function", "function pipelineSVG()" in html)
+        check("COURSE[] has module 3 as content type", "type:'content',body:mod3" in html)
+        check("Module 3 knowledge check wired", "Which step comes right after data is standardized" in html)
+        check("COURSE[] uses checks array format", "checks:[{" in html)
+        check("checkBlock renders multi-question", "function checkBlock" in html and "allChecked" in html)
+        check("answer() takes qIdx parameter", "answer(i,qi,j)" in html)
+        check("Module 3 narration text present", "Real-world data starts out messy" in html)
+
+        check("course.html contains doubtPanel function", "function doubtPanel(" in html)
+        check("course.html contains askDoubt function", "function askDoubt(" in html)
+        check("doubt panel wired into mod1", "doubtPanel(0)" in html)
+        check("doubt panel wired into mod2", "doubtPanel(1)" in html)
+        check("doubt panel wired into mod3", "doubtPanel(2)" in html)
+
+        r = c.post("/api/ask", json={}, content_type="application/json")
+        check("POST /api/ask rejects missing module_id", r.status_code == 400)
+
+        r = c.post("/api/ask", json={"module_id": 0}, content_type="application/json")
+        check("POST /api/ask rejects missing question", r.status_code == 400)
+
+        r = c.post("/api/ask", json={"module_id": 99, "question": "test"}, content_type="application/json")
+        check("POST /api/ask rejects invalid module_id", r.status_code == 400)
+
+    # --- Admin dashboard tests ---
+    os.environ["ADMIN_EMAIL"] = email  # the smoke user is now admin
+    app2 = create_app()
+    app2.config["TESTING"] = True
+    with app2.test_client() as c2:
+        c2.post("/login", data={"email": email, "password": "test1234"}, follow_redirects=True)
+
+        r = c2.get("/admin")
+        check("GET /admin returns 200 for admin user", r.status_code == 200)
+        check("admin.html contains Chart.js", b"chart.js" in r.data.lower() or b"Chart" in r.data)
+
+        r = c2.get("/api/admin/stats")
+        check("GET /api/admin/stats returns 200", r.status_code == 200)
+        import json as _json
+        stats = _json.loads(r.data)
+        check("stats has total_users key", "total_users" in stats)
+        check("stats has users list", isinstance(stats.get("users"), list))
+        check("stats has registrations_by_date", "registrations_by_date" in stats)
+        check("stats has pre_knowledge", "pre_knowledge" in stats)
+        check("stats has doubts_per_module", "doubts_per_module" in stats)
+        check("stats has test_pass_fail", "test_pass_fail" in stats)
+
+    # Verify non-admin can't access
+    with app2.test_client() as c3:
+        other_email = f"other{int(time.time()*1000)}@test.local"
+        c3.post("/register", data={"name": "Other", "email": other_email, "password": "test1234"}, follow_redirects=True)
+        r = c3.get("/admin", follow_redirects=False)
+        check("GET /admin redirects non-admin user", r.status_code == 302)
+
+    check("MODULE_TITLES has 12 entries", len(MODULE_TITLES) == 12)
+    check("MODULE_TITLES[2] is End-to-End Process", MODULE_TITLES[2] == "End-to-End Process")
+    check("MODULE_CONTEXT has key 2", 2 in MODULE_CONTEXT)
+    check("MODULE_CONTEXT[2] mentions six stages", "six stages" in MODULE_CONTEXT[2])
+
+    print(f"\n{'='*40}")
+    print(f"  {ok} passed, {fail} failed")
+    if fail:
+        print("  SOME TESTS FAILED")
+        sys.exit(1)
+    else:
+        print("  ALL SMOKE TESTS PASSED")
+
+if __name__ == "__main__":
+    smoke()

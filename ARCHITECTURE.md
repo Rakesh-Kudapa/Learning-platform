@@ -319,7 +319,7 @@ narration text.
 | 6 | Data Landscape | EHR/claims/registry/wearable; structured vs unstructured; formats (CSV, OMOP tables, FHIR/JSON); quality challenges |
 | 7 | Industry Standards | OMOP CDM, FHIR, HL7, ICD-10/SNOMED/LOINC, FDA RWE framework, 21 CFR Part 11 — and **why** each matters |
 | 8 | Technology Ecosystem | EHR systems, data warehouses, OHDSI/ATLAS, cloud, Spark/Databricks, R/Python analytics; how they interact |
-| 9 | Current Challenges | data quality/missingness, interoperability, privacy (HIPAA/GDPR), bias/confounding, regulatory acceptance, scale |
+| 9 | Current Industry Challenges | data quality/missingness, interoperability, privacy (HIPAA/GDPR), bias/confounding, regulatory acceptance, scale |
 | 10 | Role of Data Engineering & AI | ETL→CDM, NLP on notes, ML phenotyping, GenAI synthesis, agentic automation — **business value**, not implementation |
 | 11 | Summary | key takeaways, recap, further reading |
 | 12 | References | citations for standards, repositories, AI/media assets |

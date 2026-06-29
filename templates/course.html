@@ -242,6 +242,48 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .empty-state{text-align:center;padding:50px 20px;color:var(--ink-faint)}
 .empty-state .e-big{font-size:34px;margin-bottom:10px}
 
+/* explainer video */
+.vid-wrap{display:none;margin-bottom:26px}
+.vid-wrap.open{display:block}
+.vid-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.vid-card video{display:block;width:100%;border-radius:0}
+.vid-card .vid-cap{font-size:12.5px;color:var(--ink-faint);text-align:center;padding:10px 14px;font-style:italic}
+.narrate .watch{width:34px;height:34px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);color:var(--violet);display:grid;place-items:center;flex:none;font-size:15px}
+.narrate .watch:hover{background:var(--surface);border-color:var(--violet)}
+.narrate .watch:active{transform:scale(.94)}
+
+/* settings page */
+.settings-page{max-width:560px;margin:0 auto;padding:38px 28px 90px}
+.settings-page h1{font-size:28px;font-weight:700;margin-bottom:8px}
+.settings-page .lead{font-size:15px;color:var(--ink-soft);margin-bottom:26px}
+.s-field{margin-bottom:18px}
+.s-field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase}
+.s-field select,.s-field input[type=text],.s-field input[type=password]{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:var(--r-sm);font-family:inherit;font-size:14.5px;background:var(--surface)}
+.s-field select:focus,.s-field input:focus{outline:none;border-color:var(--violet)}
+.s-status{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;margin-bottom:18px}
+.s-status.ok{background:rgba(21,181,126,.1);color:#0c7a52}
+.s-status.no{background:rgba(233,104,60,.1);color:#b14620}
+.s-hint{font-size:12.5px;color:var(--ink-faint);margin-top:6px;line-height:1.5}
+
+/* ask-a-doubt panel */
+.doubt{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;margin:28px 0 10px;box-shadow:var(--shadow)}
+.doubt .d-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.doubt .d-badge{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--signal)}
+.doubt .d-row{display:flex;gap:10px;margin-bottom:12px}
+.doubt .d-input{flex:1;padding:11px 14px;border:1.5px solid var(--line);border-radius:var(--r-sm);font-family:inherit;font-size:14px;resize:none;min-height:44px}
+.doubt .d-input:focus{outline:none;border-color:var(--signal)}
+.doubt .d-send{flex:none;padding:10px 18px;border-radius:var(--r-sm);background:var(--grad);color:#fff;font-weight:600;font-size:14px}
+.doubt .d-send:hover{filter:brightness(1.05)}
+.doubt .d-send:disabled{opacity:.5;cursor:not-allowed;filter:none}
+.doubt .d-log{max-height:320px;overflow-y:auto}
+.doubt .d-msg{padding:10px 14px;border-radius:var(--r-sm);margin-bottom:8px;font-size:14px;line-height:1.55}
+.doubt .d-msg.user{background:rgba(17,181,196,.08);border:1px solid rgba(17,181,196,.18);color:var(--ink)}
+.doubt .d-msg.tutor{background:var(--surface-2);border:1px solid var(--line);color:#28324A}
+.doubt .d-msg .d-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+.doubt .d-msg.user .d-label{color:var(--signal)}
+.doubt .d-msg.tutor .d-label{color:var(--violet)}
+.doubt .d-typing{color:var(--ink-faint);font-size:13px;font-style:italic;padding:6px 0}
+
 /* mobile */
 @media (max-width:860px){
   .app{grid-template-columns:1fr}
@@ -332,7 +374,7 @@ function persist(){ store.save(state); }
    COURSE DATA  (Modules 1-2 authored; 3-12 stubbed/locked)
 ============================================================ */
 const COURSE=[
- {id:0,title:'Introduction',short:'Introduction',type:'content',body:mod1,check:{
+ {id:0,title:'Introduction',short:'Introduction',type:'content',body:mod1,checks:[{
    xp:20,
    q:'Which of these is an example of Real-World Data (RWD)?',
    opts:[
@@ -342,8 +384,8 @@ const COURSE=[
     'A hypothesis written in a research grant proposal'],
    answer:1,
    explain:'RWD is health data generated during everyday care \u2014 EHRs, insurance claims, registries, wearables \u2014 not data from a controlled trial or lab bench.'
- }},
- {id:1,title:'Business Overview',short:'Business Overview',type:'content',body:mod2,check:{
+ }]},
+ {id:1,title:'Business Overview',short:'Business Overview',type:'content',body:mod2,checks:[{
    xp:20,
    q:'Why does the Real-World Evidence function exist at all?',
    opts:[
@@ -353,14 +395,24 @@ const COURSE=[
     'Because real-world data is always cleaner than trial data'],
    answer:2,
    explain:'Trials are controlled, expensive, narrow, and end at approval. RWE answers what happens afterward \u2014 in real, diverse populations, over long periods \u2014 which trials can\u2019t.'
- }},
- {id:2,title:'End-to-End Process',short:'End-to-End Process',type:'locked'},
+ }]},
+ {id:2,title:'End-to-End Process',short:'End-to-End Process',type:'content',body:mod3,checks:[{
+   xp:20,
+   q:'Which step comes right after data is standardized?',
+   opts:[
+    'Collect',
+    'Curate & quality-check',
+    'Generate evidence',
+    'Ingest'],
+   answer:1,
+   explain:'The order is Collect → Ingest → Standardize → Curate & QC → Analyse → Evidence. Standardizing makes the data speak one language; curation is the next step, where it gets cleaned and checked before any analysis happens.'
+ }]},
  {id:3,title:'Key Terminologies',short:'Key Terminologies',type:'locked'},
  {id:4,title:'Stakeholders',short:'Stakeholders',type:'locked'},
  {id:5,title:'Data Landscape',short:'Data Landscape',type:'locked'},
  {id:6,title:'Industry Standards',short:'Industry Standards',type:'locked'},
  {id:7,title:'Technology Ecosystem',short:'Technology Ecosystem',type:'locked'},
- {id:8,title:'Current Challenges',short:'Current Challenges',type:'locked'},
+ {id:8,title:'Current Industry Challenges',short:'Industry Challenges',type:'locked'},
  {id:9,title:'Role of Data Engineering & AI',short:'Data Engineering & AI',type:'locked'},
  {id:10,title:'Summary',short:'Summary',type:'locked'},
  {id:11,title:'References',short:'References',type:'locked'},
@@ -382,7 +434,7 @@ function mod1(){return `
  <h1>Signal from the <em>Noise</em></h1>
  <p class="lead">Every day, millions of patients generate data just by living \u2014 visiting clinics, filling prescriptions, wearing fitness trackers. This course is about turning that messy, real-world trail into evidence that helps better, safer medicines reach the people who need them.</p>
 
- ${narrateBar('Module 1: Introduction')}
+ ${narrateBar('Module 1: Introduction',0)}
 
  <h2>What you\u2019ll be able to do</h2>
  <p class="muted">By the end of this 50-minute course, you will be able to:</p>
@@ -424,6 +476,7 @@ function mod1(){return `
    <p>Excelra\u2019s clinical data analytics and data-engineering teams turn raw patient data into decision-ready insight \u2014 exactly the journey this course walks through. You\u2019re learning the business you\u2019re part of.</p></div>
 
  ${checkBlock(0)}
+ ${doubtPanel(0)}
  ${pageNav(0)}
 `;}
 
@@ -432,7 +485,7 @@ function mod2(){return `
  <h1>The business of <em>real-world evidence</em></h1>
  <p class="lead">Before the data and the tools, one question matters most: why does anyone pay for this work? Understanding the business reason is what separates someone who runs a pipeline from someone who knows why it exists.</p>
 
- ${narrateBar('Module 2: Business Overview')}
+ ${narrateBar('Module 2: Business Overview',1)}
 
  <h2>What is the RWE function?</h2>
  <p>The real-world evidence function is the discipline of <b>turning everyday healthcare data into answers</b> that a clinical trial cannot, or cannot affordably, provide. It sits at the meeting point of medicine, data science, and business strategy.</p>
@@ -461,38 +514,169 @@ function mod2(){return `
    <p>This is squarely Excelra\u2019s territory: curating and analysing real patient data into evidence that clients use to make regulatory, access, and clinical decisions. The business need you just learned is the business Excelra serves.</p></div>
 
  ${checkBlock(1)}
+ ${doubtPanel(1)}
  ${pageNav(1)}
 `;}
+
+function mod3(){return `
+ <div class="eyebrow"><span class="mono">MODULE 03</span> • End-to-End Process</div>
+ <h1>From raw records to a <em>decision</em></h1>
+ <p class="lead">Real-world data doesn’t arrive ready to use. It travels through a chain of deliberate steps before anyone can trust it enough to act on it. This module walks that chain, start to finish.</p>
+
+ ${narrateBar('Module 3: End-to-End Process',2)}
+
+ <h2>The six stages</h2>
+ <ul class="obj-list">
+   <li><span class="on">1</span><span><b>Collect</b> — Pull data from its original sources: hospital EHR systems, insurance claims databases, patient registries, wearable devices.</span></li>
+   <li><span class="on">2</span><span><b>Ingest</b> — Bring that data into one working environment (a data warehouse or data lake) so it can all be handled together.</span></li>
+   <li><span class="on">3</span><span><b>Standardize</b> — Convert everything into a common structure and vocabulary, so “heart attack,” “MI,” and “myocardial infarction” are recognized as the same thing. This is where standards like the OMOP Common Data Model or FHIR come in (covered fully in Module 7).</span></li>
+   <li><span class="on">4</span><span><b>Curate &amp; quality-check</b> — Find and fix errors, flag missing or duplicate records, and document exactly what was changed and why.</span></li>
+   <li><span class="on">5</span><span><b>Analyse</b> — Apply statistics or analytics to answer a specific question (e.g. “Do patients on Drug A have fewer hospital readmissions than patients on Drug B?”).</span></li>
+   <li><span class="on">6</span><span><b>Generate evidence</b> — Package the analysis into something a regulator, payer, or doctor can actually use to make a decision.</span></li>
+ </ul>
+
+ <div class="diagram">
+   ${pipelineSVG()}
+   <div class="dg-cap">The end-to-end RWD pipeline: six stages from scattered sources to decision-ready evidence.</div>
+ </div>
+
+ <h2>Inputs and outputs at a glance</h2>
+ <div class="cards2">
+   <div class="dcard rwd"><span class="dc-tag">INPUTS</span><h4>Raw, fragmented records</h4>
+     <p>Many formats, from many places — often incomplete, inconsistently coded, and not designed for research.</p></div>
+   <div class="dcard rwe"><span class="dc-tag">OUTPUTS</span><h4>Decision-ready evidence</h4>
+     <p>A clean, well-documented, analysis-ready dataset, and ultimately a specific piece of evidence — a report, a published study, a safety signal, or a regulatory submission.</p></div>
+ </div>
+
+ <h2>Key activities worth knowing</h2>
+ <ul class="obj-list">
+   <li><span class="on">•</span><span><b>De-duplication</b> — the same patient may appear in multiple source systems; records must be matched and merged correctly.</span></li>
+   <li><span class="on">•</span><span><b>Mapping to standard codes</b> — translating local hospital codes into a shared standard vocabulary.</span></li>
+   <li><span class="on">•</span><span><b>Cohort definition</b> — precisely specifying which patients belong in the study (e.g. “adults diagnosed with Type 2 diabetes after 2018”).</span></li>
+   <li><span class="on">•</span><span><b>Documentation</b> — every cleaning decision is logged, because regulators and reviewers need to see exactly how the raw data became the evidence.</span></li>
+ </ul>
+
+ <div class="callout violet"><div class="co-t">\u{1F517} The Excelra connection</div>
+   <p>This six-stage chain is exactly the kind of work Excelra’s data engineering teams do for clients every day — turning scattered real-world records into clean, decision-ready datasets.</p></div>
+
+ ${checkBlock(2)}
+ ${doubtPanel(2)}
+ ${pageNav(2)}
+`;}
+
+/* SVG: 6-stage pipeline with interactive hotspot tooltips */
+function pipelineSVG(){
+  const stages=[
+    {label:'Collect',desc:'Pull data from EHR systems, claims databases, registries, and wearables.'},
+    {label:'Ingest',desc:'Bring data into one working environment so it can be handled together.'},
+    {label:'Standardize',desc:'Convert to a common structure and vocabulary (e.g. OMOP, FHIR).'},
+    {label:'Curate & QC',desc:'Find and fix errors, flag missing or duplicate records, document changes.'},
+    {label:'Analyse',desc:'Apply statistics or analytics to answer a specific clinical question.'},
+    {label:'Evidence',desc:'Package analysis into a decision a regulator, payer, or doctor can use.'},
+  ];
+  const bw=112, bh=42, gap=18, pad=20, y=50;
+  const W=pad*2+stages.length*bw+(stages.length-1)*gap;
+  let boxes='', arrows='', tips='';
+  stages.forEach((s,i)=>{
+    const x=pad+i*(bw+gap);
+    const isLast=i===stages.length-1;
+    const fill=isLast?'url(#pg)':'#fff';
+    const stroke=isLast?'none':'var(--line)';
+    const txtFill=isLast?'#fff':'#28324A';
+    boxes+=`<rect class="pip-box" data-i="${i}" x="${x}" y="${y}" width="${bw}" height="${bh}" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="1.5" style="cursor:pointer"/>`;
+    boxes+=`<text class="pip-box" data-i="${i}" x="${x+bw/2}" y="${y+bh/2+5}" text-anchor="middle" font-family="Space Grotesk" font-size="11.5" font-weight="600" fill="${txtFill}" style="pointer-events:none">${s.label}</text>`;
+    if(i<stages.length-1){
+      const ax=x+bw+2, ax2=ax+gap-4;
+      arrows+=`<line x1="${ax}" y1="${y+bh/2}" x2="${ax2}" y2="${y+bh/2}" stroke="var(--noise)" stroke-width="2" marker-end="url(#parr)"/>`;
+    }
+    const tipW=200, tipH=48;
+    const tipX=Math.min(x, W-tipW-10);
+    tips+=`<g class="pip-tip" id="pip-tip-${i}" opacity="0" style="pointer-events:none;transition:opacity .2s">
+      <rect x="${tipX}" y="${y+bh+10}" width="${tipW}" height="${tipH}" rx="8" fill="var(--ink)" opacity=".92"/>
+      <foreignObject x="${tipX+10}" y="${y+bh+14}" width="${tipW-20}" height="${tipH-8}">
+        <p xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;color:#fff;line-height:1.35;margin:0;font-family:Inter,sans-serif">${s.desc}</p>
+      </foreignObject>
+    </g>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${y+bh+70}" style="width:100%;height:auto" role="img" aria-label="Six-stage RWD pipeline: Collect, Ingest, Standardize, Curate & QC, Analyse, Evidence">
+    <defs>
+      <linearGradient id="pg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6C5CE7"/><stop offset="1" stop-color="#E84F9C"/></linearGradient>
+      <marker id="parr" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0 L5 3 L0 6 Z" fill="var(--noise)"/></marker>
+    </defs>
+    ${arrows}${boxes}${tips}
+  </svg>`;
+}
+
+function wirePipelineTips(){
+  document.querySelectorAll('.pip-box').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{const t=document.getElementById('pip-tip-'+el.dataset.i);if(t)t.setAttribute('opacity','1')});
+    el.addEventListener('mouseleave',()=>{const t=document.getElementById('pip-tip-'+el.dataset.i);if(t)t.setAttribute('opacity','0')});
+  });
+}
 
 /* ============================================================
    SHARED UI PIECES
 ============================================================ */
-function narrateBar(label){return `
- <div class="narrate">
-   <button class="play" id="narrBtn" onclick="toggleNarration(this)" aria-label="Play narration">\u25B6</button>
-   <span class="ntxt">Listen to this module \u2014 <b>${label}</b></span>
+function doubtPanel(moduleId){return `
+ <div class="doubt" id="doubt-${moduleId}">
+   <div class="d-head"><span class="d-badge">\u{1F9E0} Ask a Doubt</span></div>
+   <p style="font-size:13.5px;color:var(--ink-soft);margin-bottom:12px">Stuck on something in this module? Ask the AI tutor — it stays on-topic and keeps things simple.</p>
+   <div class="d-row">
+     <textarea class="d-input" id="dq-${moduleId}" placeholder="Type your question…" rows="1" maxlength="500"
+       onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();askDoubt(${moduleId})}"></textarea>
+     <button class="d-send" id="ds-${moduleId}" onclick="askDoubt(${moduleId})">Ask</button>
+   </div>
+   <div class="d-log" id="dl-${moduleId}"></div>
  </div>`;}
 
+function narrateBar(label,modIdx){
+  const vidNum=String(modIdx+1).padStart(2,'0');
+  const vidSrc='/static/videos/module-'+vidNum+'.mp4';
+  return `
+ <div class="narrate">
+   <button class="play" id="narrBtn" onclick="toggleNarration(this)" aria-label="Play narration">\u25B6</button>
+   <button class="watch" id="watchBtn-${modIdx}" onclick="toggleVideo(${modIdx})" aria-label="Watch video" title="Watch explainer video" style="display:none">\u25B6</button>
+   <span class="ntxt">Listen or watch \u2014 <b>${label}</b></span>
+ </div>
+ <div class="vid-wrap" id="vid-wrap-${modIdx}">
+   <div class="vid-card">
+     <video id="vid-${modIdx}" controls preload="metadata"
+       src="${vidSrc}"
+       onerror="this.closest('.vid-wrap').remove()">
+     </video>
+     <div class="vid-cap">AI-generated explainer video \u2014 ${label}</div>
+   </div>
+ </div>`;
+}
+
 function checkBlock(i){
-  const m=COURSE[i], c=m.check, passed=state.checks[i];
+  const m=COURSE[i], qs=m.checks||[];
+  const totalXP=qs.reduce((s,c)=>s+c.xp,0);
+  const results=getChecks(i);
   return `
  <div class="kc" id="kc-${i}">
-   <div class="kc-head"><span class="kc-badge">\u2713 Knowledge Check</span><span class="kc-xp">+${c.xp} XP</span></div>
-   <div class="q">${c.q}</div>
-   <div id="opts-${i}">
-     ${c.opts.map((o,j)=>`<button class="opt" onclick="answer(${i},${j})" ${passed!=null?'disabled':''}><span class="ok">${String.fromCharCode(65+j)}</span><span>${o}</span></button>`).join('')}
-   </div>
-   <div class="kc-fb" id="fb-${i}"></div>
+   <div class="kc-head"><span class="kc-badge">\u2713 Knowledge Check${qs.length>1?' ('+qs.length+' questions)':''}</span><span class="kc-xp">+${totalXP} XP</span></div>
+   ${qs.map((c,qi)=>{
+     const answered=results[qi]!=null;
+     return `
+     <div style="${qi>0?'margin-top:20px;padding-top:18px;border-top:1px solid var(--line-soft)':''}">
+       <div class="q">${qi+1}. ${c.q}</div>
+       <div id="opts-${i}-${qi}">
+         ${c.opts.map((o,j)=>`<button class="opt" onclick="answer(${i},${qi},${j})" ${answered?'disabled':''}><span class="ok">${String.fromCharCode(65+j)}</span><span>${o}</span></button>`).join('')}
+       </div>
+       <div class="kc-fb" id="fb-${i}-${qi}"></div>
+     </div>`;
+   }).join('')}
  </div>`;
 }
 
 function pageNav(i){
-  const prev=i>0, nextMod=COURSE[i+1], unlocked=state.checks[i]!=null;
+  const prev=i>0, nextMod=COURSE[i+1], unlocked=allChecked(i);
   return `
  <div class="pagenav">
    ${prev?`<button class="btn ghost" onclick="go(${i-1})">\u2190 Previous</button>`:`<span></span>`}
    ${nextMod?`<button class="btn prim" id="nextBtn-${i}" onclick="go(${i+1})" ${unlocked?'':'disabled'}>
-       <span>${unlocked?'Next module':'Pass the check to continue'}</span> <span>\u2192</span></button>`
+       <span>${unlocked?'Next module':'Answer all questions to continue'}</span> <span>\u2192</span></button>`
      :`<button class="btn prim">Finish \u2192</button>`}
  </div>`;
 }
@@ -570,6 +754,10 @@ function render(){
     view.innerHTML=renderContribHTML(); loadContributions();
     document.getElementById('scroll').scrollTop=0; persist(); return;
   }
+  if(state.current==='settings'){
+    view.innerHTML=renderSettingsHTML(); loadSettings();
+    document.getElementById('scroll').scrollTop=0; persist(); return;
+  }
   const m=COURSE[state.current];
   if(m.type==='locked'){
     view.innerHTML=`<div class="locked-page">
@@ -579,7 +767,7 @@ function render(){
     </div>`;
   }else{
     view.innerHTML=m.body();
-    requestAnimationFrame(()=>buildWaveHero());
+    requestAnimationFrame(()=>{buildWaveHero();wirePipelineTips();probeVideos();});
   }
   document.getElementById('scroll').scrollTop=0;
   persist();
@@ -605,16 +793,17 @@ function renderNav(){
       <button class="extra-btn" style="${finOn?'background:var(--surface-2);color:var(--ink)':''}" onclick="go('finale')">
         <span class="e-ico">\u2728</span><span>My Growth &amp; Feedback</span></button>
       <button class="extra-btn" style="${conOn?'background:var(--surface-2);color:var(--ink)':''}" onclick="go('contrib')">
-        <span class="e-ico">\u{1F4AC}</span><span>Learner Contributions</span></button>`;
+        <span class="e-ico">\u{1F4AC}</span><span>Learner Contributions</span></button>
+      <button class="extra-btn" style="${state.current==='settings'?'background:var(--surface-2);color:var(--ink)':''}" onclick="go('settings')">
+        <span class="e-ico">⚙</span><span>AI Tutor Settings</span></button>`;
   }
 }
 
 function isLocked(i){
   if(i===0) return false;
-  // unlock module i only when previous module's check is passed
   const prev=COURSE[i-1];
-  if(prev.type==='locked') return true; // stub modules stay locked in this build
-  return state.checks[i-1]==null;
+  if(prev.type==='locked') return true;
+  return !allChecked(i-1);
 }
 
 function renderHUD(){
@@ -667,29 +856,49 @@ function go(i){
   state.current=i; toggleNav(false); render();
 }
 
-function answer(i,j){
-  const m=COURSE[i], c=m.check;
-  const opts=document.querySelectorAll(`#opts-${i} .opt`);
+function getChecks(i){
+  const m=COURSE[i], len=(m.checks||[]).length;
+  if(!state.checks[i]||!Array.isArray(state.checks[i])){
+    if(state.checks[i]!=null&&typeof state.checks[i]==='boolean'){
+      state.checks[i]=[state.checks[i]];
+    }else{
+      state.checks[i]=new Array(len).fill(null);
+    }
+  }
+  while(state.checks[i].length<len) state.checks[i].push(null);
+  return state.checks[i];
+}
+
+function allChecked(i){
+  const r=getChecks(i);
+  return r.length>0&&r.every(v=>v!=null);
+}
+
+function answer(i,qi,j){
+  const m=COURSE[i], c=m.checks[qi];
+  const opts=document.querySelectorAll(`#opts-${i}-${qi} .opt`);
   opts.forEach(o=>o.disabled=true);
   const correct=j===c.answer;
   opts[c.answer].classList.add('correct');
   if(!correct) opts[j].classList.add('wrong');
-  const fb=document.getElementById('fb-'+i);
+  const fb=document.getElementById(`fb-${i}-${qi}`);
   fb.className='kc-fb show '+(correct?'good':'bad');
   fb.innerHTML=(correct?'<b>Correct! </b>':'<b>Not quite. </b>')+c.explain;
 
-  if(state.checks[i]==null){
-    state.checks[i]=correct;
+  const results=getChecks(i);
+  if(results[qi]==null){
+    results[qi]=correct;
     const gain=correct?c.xp:Math.round(c.xp/2);
     addXP(gain);
-    if(!state.done[i]){ state.done[i]=true; }
-    // unlock & enable next
-    const nb=document.getElementById('nextBtn-'+i);
-    if(nb){ nb.disabled=false; nb.querySelector('span').textContent='Next module'; }
-    checkBadges(i);
-    renderNav(); renderHUD();
     if(correct) toast('xp','\u2713','+'+gain+' XP \u2014 nice work');
     else toast('xp','\u00BD','+'+gain+' XP \u2014 keep going');
+    if(allChecked(i)){
+      if(!state.done[i]) state.done[i]=true;
+      const nb=document.getElementById('nextBtn-'+i);
+      if(nb){ nb.disabled=false; nb.querySelector('span').textContent='Next module'; }
+      checkBadges(i);
+    }
+    renderNav(); renderHUD();
   }
   persist();
 }
@@ -700,8 +909,70 @@ function checkBadges(i){
   const award=(k)=>{ if(!state.badges.includes(k)){ state.badges.push(k);
     toast('badge',BADGES[k].icon,'Badge unlocked: '+BADGES[k].name); } };
   if(state.done[0]) award('first');
-  if(Object.values(state.checks).filter(v=>v!=null).length>=2) award('detective');
+  const totalAnswered=Object.keys(state.checks).reduce((s,k)=>{
+    const arr=state.checks[k];
+    return s+(Array.isArray(arr)?arr.filter(v=>v!=null).length:(arr!=null?1:0));
+  },0);
+  if(totalAnswered>=2) award('detective');
   if(Object.keys(state.done).length>=6) award('half');
+}
+
+/* ============================================================
+   ASK-A-DOUBT  (feat/ask-doubt-tutor)
+============================================================ */
+async function askDoubt(moduleId){
+  const inp=document.getElementById('dq-'+moduleId);
+  const btn=document.getElementById('ds-'+moduleId);
+  const log=document.getElementById('dl-'+moduleId);
+  const q=(inp.value||'').trim();
+  if(!q) return;
+  inp.value=''; btn.disabled=true;
+  log.innerHTML+=`<div class="d-msg user"><div class="d-label">You</div>${escapeHTML(q)}</div>`;
+  log.innerHTML+=`<div class="d-typing" id="dt-${moduleId}">Tutor is thinking…</div>`;
+  log.scrollTop=log.scrollHeight;
+  try{
+    const r=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({module_id:moduleId,question:q})});
+    const tip=document.getElementById('dt-'+moduleId);
+    if(tip) tip.remove();
+    if(r.status===401){ location.href='/'; return; }
+    if(r.status===429){ log.innerHTML+=`<div class="d-msg tutor"><div class="d-label">Tutor</div>Please wait a few seconds before asking again.</div>`; }
+    else if(r.ok){
+      const data=await r.json();
+      log.innerHTML+=`<div class="d-msg tutor"><div class="d-label">Tutor</div>${escapeHTML(data.answer)}</div>`;
+    }else{
+      log.innerHTML+=`<div class="d-msg tutor"><div class="d-label">Tutor</div>Sorry, something went wrong. Try again.</div>`;
+    }
+  }catch(e){
+    const tip=document.getElementById('dt-'+moduleId);
+    if(tip) tip.remove();
+    log.innerHTML+=`<div class="d-msg tutor"><div class="d-label">Tutor</div>Couldn’t reach the tutor — check your connection.</div>`;
+  }
+  btn.disabled=false;
+  log.scrollTop=log.scrollHeight;
+}
+
+/* ============================================================
+   EXPLAINER VIDEOS  (feat/explainer-videos)
+============================================================ */
+function toggleVideo(modIdx){
+  const wrap=document.getElementById('vid-wrap-'+modIdx);
+  if(!wrap) return;
+  const open=wrap.classList.toggle('open');
+  const vid=document.getElementById('vid-'+modIdx);
+  if(!open&&vid) vid.pause();
+}
+
+function probeVideos(){
+  document.querySelectorAll('[id^="watchBtn-"]').forEach(btn=>{
+    const idx=btn.id.replace('watchBtn-','');
+    const vidNum=String(+idx+1).padStart(2,'0');
+    const src='/static/videos/module-'+vidNum+'.mp4';
+    fetch(src,{method:'HEAD'}).then(r=>{
+      if(r.ok) btn.style.display='';
+      else{ btn.remove(); const w=document.getElementById('vid-wrap-'+idx); if(w) w.remove(); }
+    }).catch(()=>{ btn.remove(); const w=document.getElementById('vid-wrap-'+idx); if(w) w.remove(); });
+  });
 }
 
 /* ============================================================
@@ -709,7 +980,8 @@ function checkBadges(i){
 ============================================================ */
 const NARR={
  0:'Welcome to Real World Data and Evidence. Every day, millions of patients generate data simply by living their lives. This course shows how that messy, real-world trail becomes evidence that helps safer medicines reach the people who need them. Real World Data is the raw data collected during everyday care, such as health records, insurance claims, registries, and wearables. Real World Evidence is the conclusions we draw after analysing that data. Remember: data is the ingredient, evidence is the meal.',
- 1:'Why does anyone pay for real-world evidence work? A clinical trial proves a drug can work, but it is narrow, expensive, short, and artificial. Real-world evidence fills those gaps. It supports regulatory approvals, proves value to the payers who fund treatments, watches for rare safety risks, and guides clinical and commercial strategy. Regulators like the F D A and E M A now have formal frameworks for using it, which makes real-world evidence a core part of how modern medicines are developed and funded.'
+ 1:'Why does anyone pay for real-world evidence work? A clinical trial proves a drug can work, but it is narrow, expensive, short, and artificial. Real-world evidence fills those gaps. It supports regulatory approvals, proves value to the payers who fund treatments, watches for rare safety risks, and guides clinical and commercial strategy. Regulators like the F D A and E M A now have formal frameworks for using it, which makes real-world evidence a core part of how modern medicines are developed and funded.',
+ 2:'Real-world data starts out messy and scattered. It travels through six stages before it becomes trustworthy evidence. First we collect it from many different sources. Then we ingest it into one system. Next we standardize it so different formats speak the same language. After that we curate and quality-check it, removing errors and filling gaps where possible. Then we analyse it to answer a real question. And finally, we turn that analysis into evidence a decision-maker can actually use. Each step removes a bit more noise, until what is left is signal.'
 };
 let speaking=false;
 function toggleNarration(btn){
@@ -870,6 +1142,99 @@ async function loadContributions(){
 }
 function escapeHTML(s){
   const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML;
+}
+
+/* ============================================================
+   AI TUTOR SETTINGS PAGE
+============================================================ */
+function renderSettingsHTML(){
+  return `
+   <div class="settings-page">
+     <div class="eyebrow"><span class="mono">SETTINGS</span> • AI Tutor</div>
+     <h1>AI Tutor Settings</h1>
+     <p class="lead">Enter your API key so the "Ask a Doubt" tutor can answer questions in each module. The key is stored securely on the server and never shown in the browser.</p>
+
+     <div id="sStatus"></div>
+
+     <div class="s-field">
+       <label>LLM Provider</label>
+       <select id="sProvider" onchange="toggleKeyField()">
+         <option value="gemini">Google Gemini (free tier)</option>
+         <option value="groq">Groq (free, very fast)</option>
+         <option value="ollama">Ollama (local, no key needed)</option>
+       </select>
+       <div class="s-hint" id="sProviderHint"></div>
+     </div>
+
+     <div class="s-field" id="sKeyWrap">
+       <label>API Key</label>
+       <input type="password" id="sKey" placeholder="Paste your API key here">
+       <div class="s-hint" id="sKeyHint"></div>
+     </div>
+
+     <button class="btn prim" style="margin-top:8px" onclick="saveSettings()">Save settings →</button>
+
+     <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--line)">
+       <h3 style="font-size:15px;margin-bottom:10px">Where to get a free key</h3>
+       <ul class="obj-list">
+         <li><span class="on">✦</span><span><b>Gemini</b> — go to <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--violet);font-weight:600">aistudio.google.com/app/apikey</a> and click "Create API key." It’s free.</span></li>
+         <li><span class="on">✦</span><span><b>Groq</b> — go to <a href="https://console.groq.com/keys" target="_blank" style="color:var(--violet);font-weight:600">console.groq.com/keys</a> and create a free key.</span></li>
+         <li><span class="on">✦</span><span><b>Ollama</b> — install from <a href="https://ollama.com" target="_blank" style="color:var(--violet);font-weight:600">ollama.com</a>, run it locally. No API key needed.</span></li>
+       </ul>
+     </div>
+   </div>`;
+}
+
+const PROVIDER_HINTS={
+  gemini:'Generous free tier. Best default choice.',
+  groq:'Very fast inference. Free tier available.',
+  ollama:'Runs 100% locally on your machine. No key needed, but requires Ollama installed.'
+};
+
+function toggleKeyField(){
+  const p=document.getElementById('sProvider').value;
+  document.getElementById('sKeyWrap').style.display=p==='ollama'?'none':'block';
+  document.getElementById('sProviderHint').textContent=PROVIDER_HINTS[p]||'';
+}
+
+async function loadSettings(){
+  try{
+    const r=await fetch('/api/settings');
+    if(!r.ok) return;
+    const s=await r.json();
+    document.getElementById('sProvider').value=s.llm_provider||'gemini';
+    toggleKeyField();
+    const st=document.getElementById('sStatus');
+    if(s.has_key){
+      st.innerHTML=`<div class="s-status ok">✓ API key configured (${s.api_key_masked})</div>`;
+      document.getElementById('sKey').placeholder='Key saved — enter a new one to replace it';
+    }else{
+      st.innerHTML=`<div class="s-status no">✘ No API key set — the AI tutor won’t work until you add one</div>`;
+    }
+  }catch(e){}
+}
+
+async function saveSettings(){
+  const provider=document.getElementById('sProvider').value;
+  const key=document.getElementById('sKey').value.trim();
+  if(provider!=='ollama'&&!key){
+    const st=document.getElementById('sStatus');
+    const existing=st.querySelector('.s-status.ok');
+    if(!existing){
+      toast('lvl','⚠','Please enter an API key'); return;
+    }
+  }
+  const body={llm_provider:provider};
+  if(key) body.api_key=key;
+  else if(provider==='ollama') body.api_key='';
+  else{ toast('xp','✓','Provider updated (existing key kept)');
+    go('settings'); return; }
+  try{
+    const r=await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.ok){ toast('xp','✓','Settings saved! The AI tutor is ready.');
+      go('settings'); }
+    else{ const d=await r.json(); toast('lvl','⚠',d.error||'Could not save'); }
+  }catch(e){ toast('lvl','⚠','Could not reach the server'); }
 }
 
 /* ============================================================

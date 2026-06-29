@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — Excelra RWD/RWE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F4F7FB;--surface:#fff;--ink:#131B2E;--ink-soft:#5A6781;--line:#E3E9F2;
+  --signal:#11B5C4;--violet:#6C5CE7;--magenta:#E84F9C;--warn:#E9683C;--success:#15B57E;
+  --grad:linear-gradient(135deg,#11B5C4,#6C5CE7,#E84F9C);
+}
+*{margin:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+/* Top bar */
+.topbar{background:var(--surface);border-bottom:1px solid var(--line);padding:14px 28px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
+.topbar .brand{font-family:'Space Grotesk';font-weight:700;font-size:20px;letter-spacing:-.02em}
+.topbar .brand span{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.topbar .tag{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:var(--violet);color:#fff;padding:3px 10px;border-radius:6px}
+.topbar .spacer{flex:1}
+.topbar a{font-size:13px;color:var(--violet);text-decoration:none;font-weight:600}
+.topbar a:hover{text-decoration:underline}
+
+/* Main content */
+.container{max-width:1200px;margin:0 auto;padding:28px 24px}
+
+/* Stat cards row */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 20px;text-align:center;box-shadow:0 4px 16px rgba(19,27,46,.05)}
+.stat-card .number{font-family:'Space Grotesk';font-size:36px;font-weight:700;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat-card .label{font-size:12.5px;color:var(--ink-soft);font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
+
+/* Chart grid */
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:20px;margin-bottom:28px}
+.chart-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px;box-shadow:0 4px 16px rgba(19,27,46,.05)}
+.chart-card h3{font-family:'Space Grotesk';font-size:16px;font-weight:600;margin-bottom:14px;color:var(--ink)}
+.chart-card canvas{width:100%!important;max-height:280px}
+
+/* User table */
+.table-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px;box-shadow:0 4px 16px rgba(19,27,46,.05);overflow-x:auto;margin-bottom:28px}
+.table-card h3{font-family:'Space Grotesk';font-size:16px;font-weight:600;margin-bottom:14px}
+.search-bar{width:100%;max-width:360px;padding:10px 14px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px;background:#FBFCFE;margin-bottom:14px}
+.search-bar:focus{outline:none;border-color:var(--violet)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead{background:#F8FAFD}
+th{text-align:left;padding:10px 12px;font-weight:600;color:var(--ink-soft);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--line)}
+td{padding:10px 12px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#F4F7FB}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.badge.pass{background:rgba(21,181,126,.12);color:#0c7a52}
+.badge.fail{background:rgba(233,104,60,.12);color:#b14620}
+.badge.beginner{background:rgba(17,181,196,.12);color:#0a7a85}
+.badge.medium{background:rgba(108,92,231,.12);color:#4a3db0}
+.badge.advanced{background:rgba(232,79,156,.12);color:#a82d6f}
+.star{color:#F5A623}
+
+/* Loading */
+.loading{text-align:center;padding:60px 20px;color:var(--ink-soft)}
+.loading .spinner{width:40px;height:40px;border:3px solid var(--line);border-top-color:var(--violet);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Responsive */
+@media(max-width:600px){
+  .chart-grid{grid-template-columns:1fr}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .container{padding:16px 12px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">excel<span>ra</span></div>
+  <div class="tag">Admin</div>
+  <div class="spacer"></div>
+  <a href="/course">Back to Course</a>
+  <a href="/logout">Sign out</a>
+</div>
+
+<div class="container">
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <div>Loading dashboard data...</div>
+  </div>
+
+  <div id="dashboard" style="display:none">
+
+    <!-- Stat cards -->
+    <div class="stats-row">
+      <div class="stat-card"><div class="number" id="s-users">0</div><div class="label">Total Users</div></div>
+      <div class="stat-card"><div class="number" id="s-doubts">0</div><div class="label">Doubts Asked</div></div>
+      <div class="stat-card"><div class="number" id="s-contribs">0</div><div class="label">Contributions</div></div>
+      <div class="stat-card"><div class="number" id="s-feedback">0</div><div class="label">Feedback</div></div>
+      <div class="stat-card"><div class="number" id="s-tests">0</div><div class="label">Tests Taken</div></div>
+    </div>
+
+    <!-- Charts row 1 -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>User Registrations Over Time</h3>
+        <canvas id="chartRegistrations"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Pre-Course Knowledge Level</h3>
+        <canvas id="chartPreKnowledge"></canvas>
+      </div>
+    </div>
+
+    <!-- Charts row 2 -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Post-Course Knowledge Level</h3>
+        <canvas id="chartPostKnowledge"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Feedback Ratings Distribution</h3>
+        <canvas id="chartFeedback"></canvas>
+      </div>
+    </div>
+
+    <!-- Charts row 3 -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Doubts Asked per Module</h3>
+        <canvas id="chartDoubts"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Final Test Results</h3>
+        <canvas id="chartTests"></canvas>
+      </div>
+    </div>
+
+    <!-- User table -->
+    <div class="table-card">
+      <h3>All Users</h3>
+      <input class="search-bar" type="text" id="userSearch" placeholder="Search by name or email...">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Joined</th>
+            <th>Pre-Level</th>
+            <th>Post-Level</th>
+            <th>Doubts</th>
+            <th>Contributions</th>
+            <th>Best Test</th>
+            <th>Feedback</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const COLORS = {
+  signal: '#11B5C4', violet: '#6C5CE7', magenta: '#E84F9C',
+  warn: '#E9683C', success: '#15B57E', ink: '#131B2E',
+  soft: '#5A6781', line: '#E3E9F2',
+};
+const PIE_COLORS = ['#11B5C4', '#6C5CE7', '#E84F9C'];
+const FEEDBACK_COLORS = ['#E9683C', '#F5A623', '#11B5C4', '#6C5CE7', '#15B57E'];
+
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+
+async function loadDashboard() {
+  const resp = await fetch('/api/admin/stats');
+  if (resp.status === 401 || resp.status === 302) { location.href = '/'; return; }
+  const d = await resp.json();
+
+  document.getElementById('s-users').textContent = d.total_users;
+  document.getElementById('s-doubts').textContent = d.total_doubts;
+  document.getElementById('s-contribs').textContent = d.total_contributions;
+  document.getElementById('s-feedback').textContent = d.total_feedback;
+  document.getElementById('s-tests').textContent = d.total_tests;
+
+  // Registration timeline (line chart)
+  const regDates = Object.keys(d.registrations_by_date).sort();
+  let cumulative = 0;
+  const cumData = regDates.map(dt => { cumulative += d.registrations_by_date[dt]; return cumulative; });
+  new Chart(document.getElementById('chartRegistrations'), {
+    type: 'line',
+    data: {
+      labels: regDates,
+      datasets: [{
+        label: 'Total Users',
+        data: cumData,
+        borderColor: COLORS.violet,
+        backgroundColor: 'rgba(108,92,231,.1)',
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: COLORS.violet,
+        pointRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+      }
+    }
+  });
+
+  // Pre-knowledge pie
+  buildPie('chartPreKnowledge', d.pre_knowledge);
+
+  // Post-knowledge pie
+  buildPie('chartPostKnowledge', d.post_knowledge);
+
+  // Feedback bar
+  new Chart(document.getElementById('chartFeedback'), {
+    type: 'bar',
+    data: {
+      labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
+      datasets: [{
+        label: 'Responses',
+        data: [d.feedback_ratings['1'], d.feedback_ratings['2'], d.feedback_ratings['3'], d.feedback_ratings['4'], d.feedback_ratings['5']],
+        backgroundColor: FEEDBACK_COLORS,
+        borderRadius: 8,
+        maxBarThickness: 48,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+      }
+    }
+  });
+
+  // Doubts per module (horizontal bar)
+  const modLabels = d.doubts_per_module.map(m => m.module.length > 22 ? m.module.slice(0, 20) + '...' : m.module);
+  new Chart(document.getElementById('chartDoubts'), {
+    type: 'bar',
+    data: {
+      labels: modLabels,
+      datasets: [{
+        label: 'Doubts',
+        data: d.doubts_per_module.map(m => m.count),
+        backgroundColor: COLORS.signal,
+        borderRadius: 6,
+        maxBarThickness: 32,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { display: false } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+
+  // Test results doughnut
+  const hasTests = d.test_pass_fail.passed + d.test_pass_fail.failed > 0;
+  new Chart(document.getElementById('chartTests'), {
+    type: 'doughnut',
+    data: {
+      labels: hasTests ? ['Passed', 'Failed'] : ['No tests yet'],
+      datasets: [{
+        data: hasTests ? [d.test_pass_fail.passed, d.test_pass_fail.failed] : [1],
+        backgroundColor: hasTests ? [COLORS.success, COLORS.warn] : [COLORS.line],
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true,
+      cutout: '60%',
+      plugins: {
+        legend: { position: 'bottom' },
+      }
+    }
+  });
+
+  // User table
+  renderUserTable(d.users);
+
+  document.getElementById('userSearch').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    const filtered = d.users.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+    renderUserTable(filtered);
+  });
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+}
+
+function buildPie(canvasId, dist) {
+  const labels = ['Beginner', 'Medium', 'Advanced'];
+  const values = [dist.beginner, dist.medium, dist.advanced];
+  const total = values.reduce((a, b) => a + b, 0);
+  new Chart(document.getElementById(canvasId), {
+    type: 'doughnut',
+    data: {
+      labels: total > 0 ? labels : ['No data yet'],
+      datasets: [{
+        data: total > 0 ? values : [1],
+        backgroundColor: total > 0 ? PIE_COLORS : [COLORS.line],
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true,
+      cutout: '55%',
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+}
+
+function renderUserTable(users) {
+  const tbody = document.getElementById('userTableBody');
+  if (!users.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--ink-soft);padding:28px">No users found</td></tr>';
+    return;
+  }
+  tbody.innerHTML = users.map((u, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td><strong>${esc(u.name)}</strong></td>
+      <td>${esc(u.email)}</td>
+      <td>${u.joined}</td>
+      <td>${levelBadge(u.pre_level)}</td>
+      <td>${levelBadge(u.post_level)}</td>
+      <td>${u.doubts_asked}</td>
+      <td>${u.contributions}</td>
+      <td>${u.best_test_score ? u.best_test_score + ' ' + (u.test_passed ? '<span class="badge pass">PASS</span>' : '<span class="badge fail">FAIL</span>') : '<span style="color:var(--ink-soft)">—</span>'}</td>
+      <td>${u.feedback_rating ? '<span class="star">' + '★'.repeat(u.feedback_rating) + '</span><span style="color:var(--line)">' + '★'.repeat(5 - u.feedback_rating) + '</span>' : '<span style="color:var(--ink-soft)">—</span>'}</td>
+    </tr>
+  `).join('');
+}
+
+function levelBadge(level) {
+  if (!level) return '<span style="color:var(--ink-soft)">—</span>';
+  return `<span class="badge ${level}">${level.charAt(0).toUpperCase() + level.slice(1)}</span>`;
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

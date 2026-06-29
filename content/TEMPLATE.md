@@ -29,6 +29,19 @@ One or more `### Subheading` blocks. Each should be short paragraphs a true
 beginner can follow — no unexplained jargon, define every term on first use.
 Use **bold** for key terms, and short bullet lists where useful.
 
+## Video script (Steve.ai)
+A separate, shorter script for the AI explainer video — written in natural,
+spoken language, pre-broken into short numbered **scenes** (1-3 sentences
+each) so Steve.ai's auto-scene-split lands cleanly. Keep total length to
+~60-90 seconds of spoken audio (roughly 130-180 words total).
+- **Suggested context tag** (1-2 words, for Steve.ai's "what's this video
+  about" field): e.g. `healthcare data`
+- **Suggested style:** animated 2D explainer / presenter-avatar template
+- **Scenes:**
+  1. ...
+  2. ...
+  3. ...
+
 ## Diagram spec (if applicable)
 Describe the diagram in words — what boxes/steps/arrows it needs, what each
 label says, what it's trying to show. Claude Code (or Claude in chat) turns
@@ -40,14 +53,29 @@ here — just the content of the diagram.
 Optional short highlight box(es): a memory hook, a common-mistake warning,
 or an "Excelra connection" line tying the concept back to Excelra's business.
 
-## Knowledge check
+## Knowledge check(s)
+Scale the number of questions to the module's length/content depth — a
+dense module (e.g. 20 terminologies) warrants more questions than a short
+one. As a guide: 3 questions for lighter modules, 4-5 for denser ones.
+Each question unlocks the next module once **all** questions in the module
+have been answered (right or wrong) — correct answers award full XP,
+incorrect award half XP, matching the existing single-question modules.
+
+### Question 1
 - **Question:**
 - **Options (4):** A / B / C / D
 - **Correct answer:** (letter)
 - **Explanation:** 1-2 sentences explaining why the correct answer is right
   (and ideally why a tempting wrong option is wrong).
+- **XP:** 15 (lower than the old flat 20, since multiple questions now add
+  up per module — adjust if a module has very few questions)
+
+### Question 2
+(same structure — add as many `### Question N` blocks as the module needs)
 
 ## XP value
+Sum of all questions' XP above (informational — not required to total an
+exact number, just keep it consistent with the per-question values).
 Default `20` unless this module's check should be weighted differently.
 
 ---
