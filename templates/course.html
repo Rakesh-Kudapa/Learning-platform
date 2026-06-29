@@ -1034,15 +1034,17 @@ function showPreGate(){
 }
 async function submitLevel(stage,level){
   try{
-    await fetch('/api/assessment',{method:'POST',headers:{'Content-Type':'application/json'},
+    const r=await fetch('/api/assessment',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({stage,level})});
-  }catch(e){ /* keep going even if offline */ }
+    if(!r.ok) console.warn('Assessment POST failed:',r.status);
+  }catch(e){ console.warn('Assessment POST error:',e); }
   if(stage==='pre'){
     state.preLevel=level; persist();
     document.getElementById('modalHost').innerHTML='';
-    render();
+    try{ render(); }catch(e){ console.error('Render error after gate:',e); }
   }else{
-    state.postLevel=level; persist(); render();
+    state.postLevel=level; persist();
+    try{ render(); }catch(e){ console.error('Render error:',e); }
     toast('badge','\u2728','Thanks \u2014 growth saved');
   }
 }
@@ -1241,7 +1243,8 @@ async function saveSettings(){
    BOOT
 ============================================================ */
 window.addEventListener('load',async ()=>{
-  buildWave();
+  try{ buildWave(); }catch(e){ console.warn('buildWave:',e); }
+
   try{
     const r=await fetch('/api/me');
     if(r.status===401){ localStorage.removeItem(SAVE_KEY); location.href='/'; return; }
@@ -1249,7 +1252,7 @@ window.addEventListener('load',async ()=>{
     if(me&&me.name){ state.name=me.name; persist();
       const hi=document.getElementById('hiUser');
       if(hi) hi.textContent='Hi, '+me.name.split(' ')[0]; }
-  }catch(e){ /* offline: keep local state */ }
+  }catch(e){ console.warn('api/me:',e); }
 
   try{
     const ra=await fetch('/api/assessment');
@@ -1259,10 +1262,10 @@ window.addEventListener('load',async ()=>{
       if(a.post) state.postLevel=a.post.level;
       persist();
     }
-  }catch(e){ /* offline: fall back to local state */ }
+  }catch(e){ console.warn('api/assessment:',e); }
 
-  if(!state.preLevel) showPreGate();
-  render();
+  if(!state.preLevel){ showPreGate(); }
+  else{ try{ render(); }catch(e){ console.error('render:',e); } }
 });
 window.addEventListener('beforeunload',()=>{ try{speechSynthesis.cancel();}catch(e){} });
 </script>
