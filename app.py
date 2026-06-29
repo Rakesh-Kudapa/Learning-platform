@@ -262,6 +262,19 @@ def create_app():
     def admin_dashboard():
         return render_template("admin.html")
 
+    @app.route("/api/admin/reset", methods=["POST"])
+    @admin_required
+    def api_admin_reset():
+        Contribution.query.delete()
+        Feedback.query.delete()
+        TestResult.query.delete()
+        Doubt.query.delete()
+        KnowledgeRating.query.delete()
+        Progress.query.delete()
+        User.query.delete()
+        db.session.commit()
+        return jsonify({"ok": True, "message": "All data cleared"})
+
     @app.route("/api/admin/stats")
     @admin_required
     def api_admin_stats():

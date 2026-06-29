@@ -112,6 +112,7 @@ tr:hover td{background:#F4F7FB}
   <div class="tag">Admin Dashboard</div>
   <div class="spacer"></div>
   <a href="/course">Back to Course</a>
+  <a href="#" onclick="resetAllData()" style="color:var(--warn)">Reset All Data</a>
   <a href="/logout">Sign out</a>
 </div>
 
@@ -504,6 +505,14 @@ function levelBadge(l) {
   return '<span class="badge '+l+'">'+l.charAt(0).toUpperCase()+l.slice(1)+'</span>';
 }
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+async function resetAllData() {
+  if (!confirm('WARNING: This will permanently delete ALL users, progress, doubts, feedback, and contributions. Are you sure?')) return;
+  if (!confirm('This cannot be undone. Type OK to confirm you really want to wipe everything.')) return;
+  const r = await fetch('/api/admin/reset', {method:'POST'});
+  if (r.ok) { alert('All data has been cleared. The page will reload.'); location.reload(); }
+  else { alert('Failed to reset data.'); }
+}
 
 loadDashboard();
 </script>
