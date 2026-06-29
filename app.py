@@ -31,10 +31,16 @@ def create_app():
 
     # --- config ---
     os.makedirs(app.instance_path, exist_ok=True)
-    db_path = os.path.join(app.instance_path, "course.db")
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url:
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+    else:
+        db_path = os.path.join(app.instance_path, "course.db")
+        database_url = f"sqlite:///{db_path}"
     app.config.update(
         SECRET_KEY=os.getenv("SECRET_KEY", "dev-secret-change-me"),
-        SQLALCHEMY_DATABASE_URI=f"sqlite:///{db_path}",
+        SQLALCHEMY_DATABASE_URI=database_url,
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
     )
 
