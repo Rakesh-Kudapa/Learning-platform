@@ -55,17 +55,23 @@ def create_app():
     with app.app_context():
         db.create_all()
 
+    # --- mode ---
+    APP_MODE = os.getenv("APP_MODE", "full").strip().lower()
+
     # --- routes ---
     @app.route("/")
     def index():
         if current_user.is_authenticated:
+            if APP_MODE == "admin":
+                return redirect(url_for("admin_dashboard"))
             return redirect(url_for("course"))
         return redirect(url_for("auth.login"))
 
     @app.route("/course")
     @login_required
     def course():
-        # served as a static file (no Jinja) — it's a self-contained app
+        if APP_MODE == "admin":
+            return redirect(url_for("admin_dashboard"))
         return send_from_directory(
             os.path.join(app.root_path, "templates"), "course.html")
 
@@ -242,7 +248,11 @@ def create_app():
         @wraps(f)
         @login_required
         def decorated(*args, **kwargs):
+            if APP_MODE == "user":
+                return redirect(url_for("course"))
             if current_user.email.lower() != ADMIN_EMAIL:
+                if APP_MODE == "admin":
+                    return redirect(url_for("auth.login"))
                 return redirect(url_for("course"))
             return f(*args, **kwargs)
         return decorated
@@ -256,6 +266,7 @@ def create_app():
     @admin_required
     def api_admin_stats():
         from sqlalchemy import func
+        from course_data import MODULE_TITLES
 
         users = User.query.order_by(User.created_at).all()
 
@@ -313,7 +324,6 @@ def create_app():
             if fb.rating in rating_dist:
                 rating_dist[fb.rating] += 1
 
-        from course_data import MODULE_TITLES
         doubts_per_module = []
         for i, title in enumerate(MODULE_TITLES):
             count = Doubt.query.filter_by(module_id=i).count()
@@ -322,6 +332,17 @@ def create_app():
         test_results = TestResult.query.all()
         passed = sum(1 for t in test_results if t.passed)
         failed = len(test_results) - passed
+
+        recent_doubts = (Doubt.query.order_by(Doubt.created_at.desc())
+                         .limit(200).all())
+        doubt_list = []
+        for d in recent_doubts:
+            doubt_list.append({
+                "user": d.user.name,
+                "module": MODULE_TITLES[d.module_id] if d.module_id < len(MODULE_TITLES) else f"Module {d.module_id}",
+                "question": d.question,
+                "date": d.created_at.strftime("%Y-%m-%d %H:%M"),
+            })
 
         return jsonify({
             "total_users": len(users),
@@ -336,6 +357,7 @@ def create_app():
             "feedback_ratings": rating_dist,
             "doubts_per_module": doubts_per_module,
             "test_pass_fail": {"passed": passed, "failed": failed},
+            "recent_doubts": doubt_list,
         })
 
     @app.route("/health")
