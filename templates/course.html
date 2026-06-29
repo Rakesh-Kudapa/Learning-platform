@@ -1249,9 +1249,17 @@ window.addEventListener('load',async ()=>{
     const r=await fetch('/api/me');
     if(r.status===401){ localStorage.removeItem(SAVE_KEY); location.href='/'; return; }
     const me=await r.json();
-    if(me&&me.name){ state.name=me.name; persist();
+    if(me&&me.email){
+      const prevEmail=state._email||'';
+      if(prevEmail && prevEmail!==me.email){
+        Object.keys(state).forEach(k=>delete state[k]);
+        Object.assign(state,{name:'',xp:0,done:{},checks:{},badges:[],current:0,preLevel:null,postLevel:null});
+      }
+      state._email=me.email;
+      state.name=me.name||''; persist();
       const hi=document.getElementById('hiUser');
-      if(hi) hi.textContent='Hi, '+me.name.split(' ')[0]; }
+      if(hi) hi.textContent='Hi, '+(me.name||'').split(' ')[0];
+    }
   }catch(e){ console.warn('api/me:',e); }
 
   try{
@@ -1259,7 +1267,9 @@ window.addEventListener('load',async ()=>{
     if(ra.ok){
       const a=await ra.json();
       if(a.pre) state.preLevel=a.pre.level;
+      else state.preLevel=null;
       if(a.post) state.postLevel=a.post.level;
+      else state.postLevel=null;
       persist();
     }
   }catch(e){ console.warn('api/assessment:',e); }
