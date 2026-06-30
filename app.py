@@ -156,23 +156,42 @@ def create_app():
     # ------------------------------------------------------------
     #  End-of-course feedback  (feat/pre-post-feedback-knowledge)
     # ------------------------------------------------------------
-    @app.route("/api/feedback", methods=["POST"])
+    @app.route("/api/feedback", methods=["GET", "POST"])
     @login_required
     def api_feedback():
-        payload = request.get_json(silent=True) or {}
-        try:
-            rating = int(payload.get("rating"))
-        except (TypeError, ValueError):
-            rating = None
-        if rating is None or not (1 <= rating <= 5):
-            return jsonify({"error": "rating must be an integer 1-5"}), 400
+        if request.method == "POST":
+            payload = request.get_json(silent=True) or {}
+            try:
+                rating = int(payload.get("rating"))
+            except (TypeError, ValueError):
+                rating = None
+            if rating is None or not (1 <= rating <= 5):
+                return jsonify({"error": "rating must be an integer 1-5"}), 400
 
-        db.session.add(Feedback(
-            user_id=current_user.id,
-            rating=rating,
-            experience=(payload.get("experience") or "").strip()[:2000],
-            suggestions=(payload.get("suggestions") or "").strip()[:2000],
-        ))
+            db.session.add(Feedback(
+                user_id=current_user.id,
+                rating=rating,
+                experience=(payload.get("experience") or "").strip()[:2000],
+                suggestions=(payload.get("suggestions") or "").strip()[:2000],
+            ))
+            db.session.commit()
+            return jsonify({"ok": True})
+
+        rows = (Feedback.query.filter_by(user_id=current_user.id)
+                .order_by(Feedback.created_at.desc()).all())
+        return jsonify([
+            {"id": r.id, "rating": r.rating, "experience": r.experience,
+             "suggestions": r.suggestions, "created_at": r.created_at.strftime("%d %b %Y")}
+            for r in rows
+        ])
+
+    @app.route("/api/feedback/<int:feedback_id>", methods=["DELETE"])
+    @login_required
+    def api_feedback_delete(feedback_id):
+        row = Feedback.query.filter_by(id=feedback_id, user_id=current_user.id).first()
+        if not row:
+            return jsonify({"error": "Feedback entry not found"}), 404
+        db.session.delete(row)
         db.session.commit()
         return jsonify({"ok": True})
 
@@ -198,10 +217,20 @@ def create_app():
         rows = (Contribution.query.filter_by(status="approved")
                 .order_by(Contribution.created_at.desc()).all())
         return jsonify([
-            {"author_name": r.user.name, "title": r.title, "content": r.content,
-             "created_at": r.created_at.strftime("%d %b %Y")}
+            {"id": r.id, "author_name": r.user.name, "title": r.title, "content": r.content,
+             "created_at": r.created_at.strftime("%d %b %Y"), "is_mine": r.user_id == current_user.id}
             for r in rows
         ])
+
+    @app.route("/api/contributions/<int:contribution_id>", methods=["DELETE"])
+    @login_required
+    def api_contributions_delete(contribution_id):
+        row = Contribution.query.filter_by(id=contribution_id, user_id=current_user.id).first()
+        if not row:
+            return jsonify({"error": "Contribution not found"}), 404
+        db.session.delete(row)
+        db.session.commit()
+        return jsonify({"ok": True})
 
     # ------------------------------------------------------------
     #  LLM settings — enter API key from the UI
@@ -547,17 +576,17 @@ def create_app():
         return jsonify({
             "user": {"id": user.id, "name": user.name, "email": user.email,
                      "joined": user.created_at.strftime("%Y-%m-%d %H:%M")},
-            "knowledge_ratings": [{"stage": r.stage, "level": r.level,
+            "knowledge_ratings": [{"id": r.id, "stage": r.stage, "level": r.level,
                                    "at": r.created_at.strftime("%Y-%m-%d %H:%M")} for r in ratings],
             "progress": _module_scores(user_id),
-            "test_attempts": [{"score": t.score, "total": t.total, "passed": t.passed,
+            "test_attempts": [{"id": t.id, "score": t.score, "total": t.total, "passed": t.passed,
                                "at": t.created_at.strftime("%Y-%m-%d %H:%M")} for t in tests],
-            "doubts": [{"module": MODULE_TITLES[d.module_id] if d.module_id < len(MODULE_TITLES) else str(d.module_id),
+            "doubts": [{"id": d.id, "module": MODULE_TITLES[d.module_id] if d.module_id < len(MODULE_TITLES) else str(d.module_id),
                        "question": d.question, "answer": d.answer,
                        "at": d.created_at.strftime("%Y-%m-%d %H:%M")} for d in doubts],
-            "contributions": [{"title": c.title, "content": c.content,
+            "contributions": [{"id": c.id, "title": c.title, "content": c.content,
                                "at": c.created_at.strftime("%Y-%m-%d %H:%M")} for c in contributions],
-            "feedback": [{"rating": f.rating, "experience": f.experience, "suggestions": f.suggestions,
+            "feedback": [{"id": f.id, "rating": f.rating, "experience": f.experience, "suggestions": f.suggestions,
                          "at": f.created_at.strftime("%Y-%m-%d %H:%M")} for f in feedback],
         })
 
@@ -579,6 +608,44 @@ def create_app():
         user.email = email
         db.session.commit()
         return jsonify({"ok": True})
+
+    # ------------------------------------------------------------
+    #  Admin: delete any single activity record for any user — lets the
+    #  admin clean up a mistaken contribution, feedback entry, doubt,
+    #  test attempt, or knowledge rating from any section of an account.
+    # ------------------------------------------------------------
+    def _delete_one(model, record_id):
+        row = db.session.get(model, record_id)
+        if not row:
+            return jsonify({"error": "Not found"}), 404
+        db.session.delete(row)
+        db.session.commit()
+        return jsonify({"ok": True})
+
+    @app.route("/api/admin/contributions/<int:cid>", methods=["DELETE"])
+    @admin_required
+    def api_admin_contribution_delete(cid):
+        return _delete_one(Contribution, cid)
+
+    @app.route("/api/admin/feedback/<int:fid>", methods=["DELETE"])
+    @admin_required
+    def api_admin_feedback_delete(fid):
+        return _delete_one(Feedback, fid)
+
+    @app.route("/api/admin/doubts/<int:did>", methods=["DELETE"])
+    @admin_required
+    def api_admin_doubt_delete(did):
+        return _delete_one(Doubt, did)
+
+    @app.route("/api/admin/test-results/<int:tid>", methods=["DELETE"])
+    @admin_required
+    def api_admin_test_result_delete(tid):
+        return _delete_one(TestResult, tid)
+
+    @app.route("/api/admin/knowledge-ratings/<int:rid>", methods=["DELETE"])
+    @admin_required
+    def api_admin_knowledge_rating_delete(rid):
+        return _delete_one(KnowledgeRating, rid)
 
     @app.route("/api/admin/users/<int:user_id>", methods=["DELETE"])
     @admin_required

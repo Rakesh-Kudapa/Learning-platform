@@ -135,6 +135,16 @@ tr:hover td{background:#F4F7FB}
 .switch input:checked+.slider{background:var(--violet)}
 .switch input:checked+.slider::before{transform:translateX(18px)}
 .modal-actions{display:flex;gap:10px;margin-top:18px}
+.mg-tabs{display:flex;gap:4px;border-bottom:1.5px solid var(--line);margin-top:6px}
+.mg-tab{padding:9px 16px;font-size:13px;font-weight:600;color:var(--ink-soft);cursor:pointer;border-bottom:2.5px solid transparent}
+.mg-tab.active{color:var(--violet);border-bottom-color:var(--violet)}
+.mg-panel{display:none}
+.mg-panel.active{display:block}
+.activity-section{margin-bottom:16px}
+.activity-section h4{font-family:'Space Grotesk';font-size:13px;margin-bottom:6px;color:var(--ink)}
+.activity-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:12.5px}
+.activity-row:last-child{border-bottom:none}
+.activity-row .ar-del{flex:none;color:var(--warn);font-weight:600;cursor:pointer;background:none;border:none;font-size:11.5px}
 .admin-row{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:10px}
 .admin-row .ar-email{font-weight:600;font-size:14px}
 .admin-row .ar-meta{font-size:11.5px;color:var(--ink-soft);margin-top:2px}
@@ -317,37 +327,42 @@ tr:hover td{background:#F4F7FB}
 
 </div><!-- /app -->
 
-<!-- Module access manager modal -->
-<div class="modal-overlay" id="moduleModal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeModuleManager()">&times;</button>
-    <h3 id="mmTitle">Module Access</h3>
-    <div class="modal-sub">Force-unlock specific modules for this learner, bypassing the normal quiz gate.</div>
-    <div id="mmList"></div>
-    <div class="modal-actions">
-      <button class="btn-sm" onclick="bulkModuleAccess(true)">Unlock all</button>
-      <button class="btn-sm" onclick="bulkModuleAccess(false)">Lock all (reset to normal)</button>
+<!-- Comprehensive manage-user modal: Account / Modules / Activity -->
+<div class="modal-overlay" id="manageModal">
+  <div class="modal-box" style="max-width:620px">
+    <button class="modal-close" onclick="closeManageUser()">&times;</button>
+    <h3 id="mgTitle">Manage User</h3>
+    <div class="modal-sub">Edit this learner's account, course access, or any section of their activity.</div>
+    <div class="mg-tabs">
+      <div class="mg-tab active" data-mgtab="account" onclick="switchManageTab('account')">Account</div>
+      <div class="mg-tab" data-mgtab="modules" onclick="switchManageTab('modules')">Modules</div>
+      <div class="mg-tab" data-mgtab="activity" onclick="switchManageTab('activity')">Activity</div>
     </div>
-  </div>
-</div>
 
-<!-- Edit user modal -->
-<div class="modal-overlay" id="editModal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeEditUser()">&times;</button>
-    <h3>Edit User</h3>
-    <div class="modal-sub">Update this learner's name or email.</div>
-    <div class="s-field" style="margin-bottom:14px">
-      <label style="display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">Name</label>
-      <input type="text" id="editName" style="width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px">
+    <div class="mg-panel active" id="mgPanel-account">
+      <div class="s-field" style="margin-bottom:14px;margin-top:16px">
+        <label style="display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">Name</label>
+        <input type="text" id="mgName" style="width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px">
+      </div>
+      <div class="s-field" style="margin-bottom:6px">
+        <label style="display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">Email</label>
+        <input type="email" id="mgEmail" style="width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px">
+      </div>
+      <p class="muted" id="mgAccountMsg" style="margin-top:8px"></p>
+      <div class="modal-actions"><button class="btn-primary" onclick="saveManageAccount()">Save changes</button></div>
     </div>
-    <div class="s-field" style="margin-bottom:6px">
-      <label style="display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">Email</label>
-      <input type="email" id="editEmail" style="width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px">
+
+    <div class="mg-panel" id="mgPanel-modules">
+      <div class="modal-sub" style="margin-top:14px">Force-unlock specific modules for this learner, bypassing the normal quiz gate.</div>
+      <div id="mmList"></div>
+      <div class="modal-actions">
+        <button class="btn-sm" onclick="bulkModuleAccess(true)">Unlock all</button>
+        <button class="btn-sm" onclick="bulkModuleAccess(false)">Lock all (reset to normal)</button>
+      </div>
     </div>
-    <p class="muted" id="editMsg" style="margin-top:8px"></p>
-    <div class="modal-actions">
-      <button class="btn-primary" onclick="saveEditUser()">Save changes</button>
+
+    <div class="mg-panel" id="mgPanel-activity">
+      <div id="mgActivityBody" style="margin-top:14px"></div>
     </div>
   </div>
 </div>
@@ -584,11 +599,10 @@ function renderUserDB() {
     <td>${u.feedback_rating ? '<span class="star">'+'★'.repeat(u.feedback_rating)+'</span><span style="color:var(--line)">'+'★'.repeat(5-u.feedback_rating)+'</span>' : '<span class="muted">—</span>'}</td>
     <td>
       <span class="badge ${u.unlocked_modules.length ? 'pass' : 'none'}">${u.unlocked_modules.length} unlocked</span>
-      <button class="btn-sm" style="padding:5px 10px;font-size:11.5px;margin-left:6px" onclick="openModuleManager(${u.id})">Manage</button>
+      <button class="btn-sm" style="padding:5px 10px;font-size:11.5px;margin-left:6px" onclick="openManageUser(${u.id})">Manage</button>
     </td>
     <td><button class="btn-sm" style="padding:5px 10px;font-size:11.5px" onclick="openPerformanceReport(${u.id})">View Report</button></td>
     <td style="white-space:nowrap">
-      <button class="btn-sm" style="padding:5px 10px;font-size:11.5px" onclick="openEditUser(${u.id})">Edit</button>
       <button class="btn-sm" style="padding:5px 10px;font-size:11.5px;color:var(--warn);border-color:var(--warn)" onclick="deleteUser(${u.id})" ${u.is_admin?'disabled':''}>Delete</button>
     </td>
   </tr>`).join('');
@@ -800,21 +814,104 @@ async function revokeAdmin(email) {
   else { const data = await r.json(); alert(data.error || 'Could not revoke access.'); }
 }
 
-// ============ MODULE ACCESS MANAGER ============
+// ============ MANAGE USER (Account / Modules / Activity) ============
 let MM_USER_ID = null;
 
-function openModuleManager(userId) {
+function openManageUser(userId) {
   const u = DATA.users.find(x => x.id === userId);
   if (!u) return;
   MM_USER_ID = userId;
-  document.getElementById('mmTitle').textContent = `Module Access — ${u.name}`;
+  document.getElementById('mgTitle').textContent = `Manage User — ${u.name}`;
+  document.getElementById('mgName').value = u.name;
+  document.getElementById('mgEmail').value = u.email;
+  document.getElementById('mgAccountMsg').textContent = '';
   renderModuleManagerList(u.unlocked_modules);
-  document.getElementById('moduleModal').classList.add('open');
+  switchManageTab('account');
+  document.getElementById('manageModal').classList.add('open');
+  loadManageActivity();
 }
 
-function closeModuleManager() {
-  document.getElementById('moduleModal').classList.remove('open');
+function closeManageUser() {
+  document.getElementById('manageModal').classList.remove('open');
   MM_USER_ID = null;
+}
+
+function switchManageTab(tab) {
+  document.querySelectorAll('.mg-tab').forEach(t => t.classList.toggle('active', t.dataset.mgtab === tab));
+  document.querySelectorAll('.mg-panel').forEach(p => p.classList.toggle('active', p.id === 'mgPanel-' + tab));
+}
+
+async function saveManageAccount() {
+  const name = document.getElementById('mgName').value.trim();
+  const emailVal = document.getElementById('mgEmail').value.trim();
+  const msg = document.getElementById('mgAccountMsg');
+  const r = await fetch(`/api/admin/users/${MM_USER_ID}`, {method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name, email: emailVal})});
+  const data = await r.json();
+  if (r.ok) {
+    const u = DATA.users.find(x => x.id === MM_USER_ID);
+    if (u) { u.name = name; u.email = emailVal; renderUserDB(); }
+    msg.textContent = 'Saved.';
+    document.getElementById('mgTitle').textContent = `Manage User — ${name}`;
+  } else { msg.textContent = data.error || 'Could not save changes.'; }
+}
+
+async function loadManageActivity() {
+  const host = document.getElementById('mgActivityBody');
+  host.innerHTML = '<p class="muted">Loading…</p>';
+  try {
+    const r = await fetch(`/api/admin/users/${MM_USER_ID}/report`);
+    const d = await r.json();
+    renderManageActivity(d);
+  } catch (e) {
+    host.innerHTML = '<p class="muted">Could not load activity.</p>';
+  }
+}
+
+function renderManageActivity(d) {
+  const host = document.getElementById('mgActivityBody');
+
+  const ratingsHtml = d.knowledge_ratings.length ? d.knowledge_ratings.map(r => `
+    <div class="activity-row"><span>${r.stage === 'pre' ? 'Pre-course' : 'Post-course'}: ${levelBadge(r.level)} <span class="muted">${r.at}</span></span>
+      <button class="ar-del" onclick="deleteActivityItem('knowledge-ratings', ${r.id})">Delete</button></div>`).join('')
+    : '<p class="report-empty">No knowledge ratings yet.</p>';
+
+  const testsHtml = d.test_attempts.length ? d.test_attempts.map(t => `
+    <div class="activity-row"><span>${t.score}/${t.total} ${t.passed ? '<span class="badge pass">PASS</span>' : '<span class="badge fail">FAIL</span>'} <span class="muted">${t.at}</span></span>
+      <button class="ar-del" onclick="deleteActivityItem('test-results', ${t.id})">Delete</button></div>`).join('')
+    : '<p class="report-empty">No final exam attempts yet.</p>';
+
+  const doubtsHtml = d.doubts.length ? d.doubts.map(x => `
+    <div class="activity-row"><span style="max-width:420px"><b>${esc(x.module)}:</b> ${esc(x.question.slice(0,80))}${x.question.length>80?'…':''}</span>
+      <button class="ar-del" onclick="deleteActivityItem('doubts', ${x.id})">Delete</button></div>`).join('')
+    : '<p class="report-empty">No doubts asked yet.</p>';
+
+  const contribHtml = d.contributions.length ? d.contributions.map(c => `
+    <div class="activity-row"><span>${esc(c.title)} <span class="muted">${c.at}</span></span>
+      <button class="ar-del" onclick="deleteActivityItem('contributions', ${c.id})">Delete</button></div>`).join('')
+    : '<p class="report-empty">No contributions yet.</p>';
+
+  const feedbackHtml = d.feedback.length ? d.feedback.map(f => `
+    <div class="activity-row"><span>${'★'.repeat(f.rating||0)}<span style="color:var(--line)">${'★'.repeat(5-(f.rating||0))}</span> <span class="muted">${f.at}</span></span>
+      <button class="ar-del" onclick="deleteActivityItem('feedback', ${f.id})">Delete</button></div>`).join('')
+    : '<p class="report-empty">No feedback submitted yet.</p>';
+
+  host.innerHTML = `
+    <div class="activity-section"><h4>Knowledge Ratings</h4>${ratingsHtml}</div>
+    <div class="activity-section"><h4>Final Exam Attempts</h4>${testsHtml}</div>
+    <div class="activity-section"><h4>Doubts Asked</h4>${doubtsHtml}</div>
+    <div class="activity-section"><h4>Contributions</h4>${contribHtml}</div>
+    <div class="activity-section"><h4>Feedback</h4>${feedbackHtml}</div>
+  `;
+}
+
+async function deleteActivityItem(section, id) {
+  if (!confirm('Delete this item permanently?')) return;
+  const r = await fetch(`/api/admin/${section}/${id}`, {method:'DELETE'});
+  if (r.ok) {
+    loadManageActivity();
+    loadDashboard();  // refresh counts/badges across the whole dashboard
+  } else { alert('Could not delete this item.'); }
 }
 
 function renderModuleManagerList(unlocked) {
@@ -892,38 +989,6 @@ async function bulkDeleteUsers() {
     renderUserDB();
     alert(`Deleted ${data.deleted} user(s).${data.skipped ? ' ' + data.skipped + ' skipped (admin accounts can\'t be deleted here).' : ''}`);
   } else { alert('Could not delete the selected users.'); }
-}
-
-// ============ EDIT USER ============
-let EDIT_USER_ID = null;
-
-function openEditUser(userId) {
-  const u = DATA.users.find(x => x.id === userId);
-  if (!u) return;
-  EDIT_USER_ID = userId;
-  document.getElementById('editName').value = u.name;
-  document.getElementById('editEmail').value = u.email;
-  document.getElementById('editMsg').textContent = '';
-  document.getElementById('editModal').classList.add('open');
-}
-
-function closeEditUser() {
-  document.getElementById('editModal').classList.remove('open');
-  EDIT_USER_ID = null;
-}
-
-async function saveEditUser() {
-  const name = document.getElementById('editName').value.trim();
-  const emailVal = document.getElementById('editEmail').value.trim();
-  const msg = document.getElementById('editMsg');
-  const r = await fetch(`/api/admin/users/${EDIT_USER_ID}`, {method:'PATCH', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({name, email: emailVal})});
-  const data = await r.json();
-  if (r.ok) {
-    const u = DATA.users.find(x => x.id === EDIT_USER_ID);
-    if (u) { u.name = name; u.email = emailVal; renderUserDB(); }
-    closeEditUser();
-  } else { msg.textContent = data.error || 'Could not save changes.'; }
 }
 
 // ============ DELETE SINGLE USER ============

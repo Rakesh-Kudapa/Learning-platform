@@ -234,7 +234,48 @@ def smoke():
         check("Report module 1 shows 1/1 correct", report["progress"]["modules"][0]["correct"] == 1)
         check("Report includes feedback", len(report["feedback"]) == 1 and report["feedback"][0]["rating"] == 4)
         check("Report includes contributions", len(report["contributions"]) == 1)
+        feedback_id = report["feedback"][0]["id"]
+        contribution_id = report["contributions"][0]["id"]
+        doubt_id = None
 
+        # Admin can delete any single activity item from any section
+        r = c2d.delete(f"/api/admin/feedback/{feedback_id}")
+        check("Admin can delete a feedback entry", r.status_code == 200)
+        r = c2d.delete(f"/api/admin/contributions/{contribution_id}")
+        check("Admin can delete a contribution", r.status_code == 200)
+        r = c2d.get(f"/api/admin/users/{other_user_id}/report")
+        check("Deleted feedback/contribution no longer in report", r.get_json()["feedback"] == [] and r.get_json()["contributions"] == [])
+
+    # --- Learner self-service delete: own contribution and feedback only ---
+    with app2.test_client() as c7:
+        c7.post("/login", data={"email": other_email, "password": "test1234"}, follow_redirects=True)
+        c7.post("/api/feedback", json={"rating": 3, "experience": "ok"}, content_type="application/json")
+        c7.post("/api/contributions", json={"title": "Self tip", "content": "Delete me"}, content_type="application/json")
+
+        my_feedback = c7.get("/api/feedback").get_json()
+        check("GET /api/feedback returns own entries with ids", len(my_feedback) == 1 and "id" in my_feedback[0])
+        r = c7.delete(f"/api/feedback/{my_feedback[0]['id']}")
+        check("Learner can delete their own feedback", r.status_code == 200)
+        check("Own feedback list now empty", c7.get("/api/feedback").get_json() == [])
+
+        my_contribs = [c for c in c7.get("/api/contributions").get_json() if c["is_mine"]]
+        check("GET /api/contributions flags is_mine for own entries", len(my_contribs) == 1)
+        r = c7.delete(f"/api/contributions/{my_contribs[0]['id']}")
+        check("Learner can delete their own contribution", r.status_code == 200)
+
+    # A learner cannot delete someone else's feedback/contribution
+    with app2.test_client() as c8:
+        c8.post("/login", data={"email": other_email, "password": "test1234"}, follow_redirects=True)
+        c8.post("/api/feedback", json={"rating": 5, "experience": "great"}, content_type="application/json")
+        victim_feedback_id = c8.get("/api/feedback").get_json()[0]["id"]
+
+    with app2.test_client() as c9:
+        c9.post("/register", data={"name": "Intruder", "email": f"intruder{int(time.time()*1000)}@test.local", "password": "test1234"}, follow_redirects=True)
+        r = c9.delete(f"/api/feedback/{victim_feedback_id}")
+        check("A learner cannot delete another learner's feedback", r.status_code == 404)
+
+    with app2.test_client() as c2d:
+        c2d.post("/login", data={"email": email, "password": "test1234"}, follow_redirects=True)
         new_email = f"renamed{int(time.time()*1000)}@test.local"
         r = c2d.patch(f"/api/admin/users/{other_user_id}", json={"name": "Renamed User", "email": new_email}, content_type="application/json")
         check("PATCH /api/admin/users/<id> edits name/email", r.status_code == 200)

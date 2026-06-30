@@ -1775,6 +1775,7 @@ function renderFinaleHTML(){
      <span class="lbl-sm">Anything you\u2019d change?</span>
      <textarea class="ta" id="fbSug" placeholder="Suggestions or changes we should make"></textarea>
      <button class="btn prim" style="margin-top:14px" onclick="submitFeedback()">Submit feedback \u2192</button>
+     <div id="myFeedbackList" style="margin-top:16px"></div>
    </div>
 
    <div class="wrap-box">
@@ -1793,15 +1794,38 @@ function setStar(n){
   starVal=n;
   document.querySelectorAll('#starRow span').forEach(s=>s.classList.toggle('on', +s.dataset.n<=n));
 }
-function wireStars(){ starVal=0; }
+function wireStars(){ starVal=0; loadMyFeedback(); }
 async function submitFeedback(){
   if(!starVal){ toast('lvl','\u2605','Pick a star rating first'); return; }
   const body={rating:starVal, experience:document.getElementById('fbExp').value, suggestions:document.getElementById('fbSug').value};
   try{
     const r=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(r.ok) toast('xp','\u2713','Thanks for the feedback!');
+    if(r.ok){ toast('xp','\u2713','Thanks for the feedback!'); loadMyFeedback(); }
     else toast('lvl','\u26A0','Couldn\u2019t save \u2014 try again');
   }catch(e){ toast('lvl','\u26A0','Offline \u2014 couldn\u2019t save feedback'); }
+}
+async function loadMyFeedback(){
+  const host=document.getElementById('myFeedbackList');
+  if(!host) return;
+  try{
+    const r=await fetch('/api/feedback');
+    const rows=await r.json();
+    if(!rows.length){ host.innerHTML=''; return; }
+    host.innerHTML='<span class="lbl-sm">Your past feedback</span>'+rows.map(f=>`
+      <div class="contrib-card" style="margin-bottom:8px">
+        <div class="cc-head"><span class="cc-title">${'\u2605'.repeat(f.rating)}<span style="color:var(--line)">${'\u2605'.repeat(5-f.rating)}</span></span>
+          <span class="cc-meta">${escapeHTML(f.created_at)} \u00B7 <a href="#" onclick="deleteMyFeedback(${f.id});return false;" style="color:var(--warn);font-weight:600;text-decoration:none">Delete</a></span></div>
+        ${f.experience?`<p>${escapeHTML(f.experience)}</p>`:''}
+      </div>`).join('');
+  }catch(e){}
+}
+async function deleteMyFeedback(id){
+  if(!confirm('Delete this feedback entry? This can\u2019t be undone.')) return;
+  try{
+    const r=await fetch('/api/feedback/'+id,{method:'DELETE'});
+    if(r.ok) loadMyFeedback();
+    else toast('lvl','\u26A0','Couldn\u2019t delete \u2014 try again');
+  }catch(e){ toast('lvl','\u26A0','Offline \u2014 couldn\u2019t delete'); }
 }
 async function submitContribution(){
   const title=document.getElementById('ckTitle').value.trim();
@@ -1992,10 +2016,18 @@ async function loadContributions(){
     if(!rows.length){ host.innerHTML=`<div class="empty-state"><div class="e-big">\u{1F4AD}</div>No contributions yet \u2014 be the first from the Wrap-Up page!</div>`; return; }
     host.innerHTML=rows.map(r=>`
       <div class="contrib-card">
-        <div class="cc-head"><span class="cc-title">${escapeHTML(r.title)}</span><span class="cc-meta">${escapeHTML(r.author_name)} \u00B7 ${escapeHTML(r.created_at)}</span></div>
+        <div class="cc-head"><span class="cc-title">${escapeHTML(r.title)}</span><span class="cc-meta">${escapeHTML(r.author_name)} \u00B7 ${escapeHTML(r.created_at)}${r.is_mine?` \u00B7 <a href="#" onclick="deleteMyContribution(${r.id});return false;" style="color:var(--warn);font-weight:600;text-decoration:none">Delete</a>`:''}</span></div>
         <p>${escapeHTML(r.content)}</p>
       </div>`).join('');
   }catch(e){ host.innerHTML=`<div class="empty-state">Couldn\u2019t load contributions \u2014 check your connection.</div>`; }
+}
+async function deleteMyContribution(id){
+  if(!confirm('Delete this contribution? This can\u2019t be undone.')) return;
+  try{
+    const r=await fetch('/api/contributions/'+id,{method:'DELETE'});
+    if(r.ok) loadContributions();
+    else toast('lvl','\u26A0','Couldn\u2019t delete \u2014 try again');
+  }catch(e){ toast('lvl','\u26A0','Offline \u2014 couldn\u2019t delete'); }
 }
 function escapeHTML(s){
   const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML;
