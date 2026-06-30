@@ -1345,7 +1345,7 @@ function pageNav(i){
    ${prev?`<button class="btn ghost" onclick="go(${i-1})">\u2190 Previous</button>`:`<span></span>`}
    ${nextMod?`<button class="btn prim" id="nextBtn-${i}" onclick="go(${i+1})" ${unlocked?'':'disabled'}>
        <span>${unlocked?'Next module':'Answer all questions to continue'}</span> <span>\u2192</span></button>`
-     :`<button class="btn prim">Finish \u2192</button>`}
+     :`<button class="btn prim" onclick="go('exam')">Finish \u2192</button>`}
  </div>`;
 }
 
