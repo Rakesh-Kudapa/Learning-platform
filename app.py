@@ -21,7 +21,8 @@ from dotenv import load_dotenv
 
 from functools import wraps
 from models import (db, login_manager, User, Progress, KnowledgeRating,
-                    Feedback, Contribution, Doubt, TestResult)
+                    Feedback, Contribution, Doubt, TestResult,
+                    AdminGrant, ModuleUnlock)
 
 load_dotenv()
 
@@ -59,8 +60,16 @@ def create_app():
     APP_MODE = os.getenv("APP_MODE", "full").strip().lower()
     ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "").strip().lower()
 
-    def is_admin_user():
+    def is_super_admin():
         return current_user.is_authenticated and current_user.email.lower() == ADMIN_EMAIL
+
+    def is_admin_user():
+        if not current_user.is_authenticated:
+            return False
+        email = current_user.email.lower()
+        if email == ADMIN_EMAIL:
+            return True
+        return AdminGrant.query.filter_by(email=email).first() is not None
 
     # --- routes ---
     @app.route("/")
@@ -85,10 +94,12 @@ def create_app():
     @app.route("/api/me")
     @login_required
     def api_me():
+        unlocks = ModuleUnlock.query.filter_by(user_id=current_user.id).all()
         return jsonify({
             "name": current_user.name,
             "email": current_user.email,
             "is_admin": is_admin_user(),
+            "unlocked_modules": [u.module_id for u in unlocks],
         })
 
     # ------------------------------------------------------------
@@ -322,10 +333,136 @@ def create_app():
             return f(*args, **kwargs)
         return decorated
 
+    def super_admin_required(f):
+        # Granting/revoking admin access is restricted to the primary admin
+        # (ADMIN_EMAIL) only — DB-granted admins can't create or remove
+        # further admins, to prevent an uncontrolled privilege chain.
+        @wraps(f)
+        @admin_required
+        def decorated(*args, **kwargs):
+            if not is_super_admin():
+                return jsonify({"error": "Only the primary admin can manage admin access"}), 403
+            return f(*args, **kwargs)
+        return decorated
+
     @app.route("/admin")
     @admin_required
     def admin_dashboard():
         return render_template("admin.html")
+
+    # ------------------------------------------------------------
+    #  Admin access management — grant/revoke/list admins
+    # ------------------------------------------------------------
+    @app.route("/api/admin/admins", methods=["GET"])
+    @admin_required
+    def api_admin_admins_list():
+        grants = AdminGrant.query.order_by(AdminGrant.created_at).all()
+        return jsonify({
+            "super_admin": ADMIN_EMAIL,
+            "is_super_admin": is_super_admin(),
+            "granted": [
+                {"email": g.email, "granted_by": g.granted_by,
+                 "created_at": g.created_at.strftime("%Y-%m-%d %H:%M")}
+                for g in grants
+            ],
+        })
+
+    @app.route("/api/admin/admins", methods=["POST"])
+    @super_admin_required
+    def api_admin_admins_grant():
+        payload = request.get_json(silent=True) or {}
+        email = (payload.get("email") or "").strip().lower()
+        if not email or "@" not in email:
+            return jsonify({"error": "A valid email is required"}), 400
+        if email == ADMIN_EMAIL:
+            return jsonify({"error": "That email is already the primary admin"}), 400
+        if AdminGrant.query.filter_by(email=email).first():
+            return jsonify({"error": "That email already has admin access"}), 400
+        db.session.add(AdminGrant(email=email, granted_by=current_user.email))
+        db.session.commit()
+        return jsonify({"ok": True})
+
+    @app.route("/api/admin/admins/revoke", methods=["POST"])
+    @super_admin_required
+    def api_admin_admins_revoke():
+        payload = request.get_json(silent=True) or {}
+        email = (payload.get("email") or "").strip().lower()
+        if email == ADMIN_EMAIL:
+            return jsonify({"error": "The primary admin can't be revoked from the portal"}), 400
+        grant = AdminGrant.query.filter_by(email=email).first()
+        if not grant:
+            return jsonify({"error": "That email doesn't have granted admin access"}), 404
+        db.session.delete(grant)
+        db.session.commit()
+        return jsonify({"ok": True})
+
+    # ------------------------------------------------------------
+    #  Per-user module unlock overrides — bypass the sequential gate
+    # ------------------------------------------------------------
+    def _valid_module_id(payload):
+        try:
+            mid = int(payload.get("module_id"))
+        except (TypeError, ValueError):
+            return None
+        from course_data import MODULE_TITLES
+        if mid < 0 or mid >= len(MODULE_TITLES):
+            return None
+        return mid
+
+    @app.route("/api/admin/unlock", methods=["POST"])
+    @admin_required
+    def api_admin_unlock():
+        payload = request.get_json(silent=True) or {}
+        user = db.session.get(User, payload.get("user_id"))
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        mid = _valid_module_id(payload)
+        if mid is None:
+            return jsonify({"error": "Invalid module_id"}), 400
+        if not ModuleUnlock.query.filter_by(user_id=user.id, module_id=mid).first():
+            db.session.add(ModuleUnlock(user_id=user.id, module_id=mid))
+            db.session.commit()
+        return jsonify({"ok": True})
+
+    @app.route("/api/admin/lock", methods=["POST"])
+    @admin_required
+    def api_admin_lock():
+        payload = request.get_json(silent=True) or {}
+        user = db.session.get(User, payload.get("user_id"))
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        mid = _valid_module_id(payload)
+        if mid is None:
+            return jsonify({"error": "Invalid module_id"}), 400
+        ModuleUnlock.query.filter_by(user_id=user.id, module_id=mid).delete()
+        db.session.commit()
+        return jsonify({"ok": True})
+
+    @app.route("/api/admin/unlock-all", methods=["POST"])
+    @admin_required
+    def api_admin_unlock_all():
+        from course_data import MODULE_TITLES
+        payload = request.get_json(silent=True) or {}
+        user = db.session.get(User, payload.get("user_id"))
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        existing = {u.module_id for u in ModuleUnlock.query.filter_by(user_id=user.id).all()}
+        for mid in range(len(MODULE_TITLES)):
+            if mid not in existing:
+                db.session.add(ModuleUnlock(user_id=user.id, module_id=mid))
+        db.session.commit()
+        return jsonify({"ok": True})
+
+    @app.route("/api/admin/lock-all", methods=["POST"])
+    @admin_required
+    def api_admin_lock_all():
+        payload = request.get_json(silent=True) or {}
+        user = db.session.get(User, payload.get("user_id"))
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        ModuleUnlock.query.filter_by(user_id=user.id).delete()
+        db.session.commit()
+        return jsonify({"ok": True})
 
     @app.route("/api/admin/answer-key")
     @admin_required
@@ -346,11 +483,15 @@ def create_app():
     @app.route("/api/admin/reset", methods=["POST"])
     @admin_required
     def api_admin_reset():
+        # Wipes learner data only. AdminGrant (admin role assignments) is
+        # intentionally preserved — wiping test users shouldn't strip
+        # anyone's admin access.
         Contribution.query.delete()
         Feedback.query.delete()
         TestResult.query.delete()
         Doubt.query.delete()
         KnowledgeRating.query.delete()
+        ModuleUnlock.query.delete()
         Progress.query.delete()
         User.query.delete()
         db.session.commit()
@@ -379,6 +520,7 @@ def create_app():
                          .order_by(TestResult.score.desc()).first())
             fb = (Feedback.query.filter_by(user_id=u.id)
                   .order_by(Feedback.created_at.desc()).first())
+            unlocked = [m.module_id for m in ModuleUnlock.query.filter_by(user_id=u.id).all()]
 
             user_list.append({
                 "id": u.id,
@@ -392,6 +534,9 @@ def create_app():
                 "best_test_score": f"{best_test.score}/{best_test.total}" if best_test else None,
                 "test_passed": best_test.passed if best_test else None,
                 "feedback_rating": fb.rating if fb else None,
+                "unlocked_modules": unlocked,
+                "is_admin": (u.email.lower() == ADMIN_EMAIL or
+                             AdminGrant.query.filter_by(email=u.email.lower()).first() is not None),
             })
 
         reg_dates = {}

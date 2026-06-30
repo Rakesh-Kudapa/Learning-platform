@@ -1481,6 +1481,8 @@ function renderNav(){
 }
 
 function isLocked(i){
+  if(state.isAdmin) return false;
+  if(state.adminUnlocked && state.adminUnlocked.includes(i)) return false;
   if(i===0) return false;
   const prev=COURSE[i-1];
   if(prev.type==='locked') return true;
@@ -2100,7 +2102,10 @@ window.addEventListener('load',async ()=>{
         Object.assign(state,{name:'',xp:0,done:{},checks:{},badges:[],current:0,preLevel:null,postLevel:null,examResult:null});
       }
       state._email=me.email;
-      state.name=me.name||''; persist();
+      state.name=me.name||'';
+      state.isAdmin=!!me.is_admin;
+      state.adminUnlocked=me.unlocked_modules||[];
+      persist();
       const hi=document.getElementById('hiUser');
       if(hi) hi.textContent='Hi, '+(me.name||'').split(' ')[0];
       const al=document.getElementById('adminLink');

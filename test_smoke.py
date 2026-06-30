@@ -6,7 +6,7 @@ import sys, os, time
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 from app import create_app
-from models import db
+from models import db, User
 from course_data import MODULE_CONTEXT, MODULE_TITLES, TEST_QUESTIONS, PASS_MARK
 
 def smoke():
@@ -143,6 +143,77 @@ def smoke():
         check("GET /api/admin/answer-key redirects non-admin user", r.status_code == 302)
         r = c3.get("/api/me")
         check("GET /api/me reports is_admin false for a regular user", r.get_json().get("is_admin") is False)
+
+    # --- Multi-admin grant/revoke + per-user module unlock overrides ---
+    with app2.app_context():
+        other_user = User.query.filter_by(email=other_email).first()
+        other_user_id = other_user.id
+
+    with app2.test_client() as c2b:
+        c2b.post("/login", data={"email": email, "password": "test1234"}, follow_redirects=True)
+
+        r = c2b.post("/api/admin/unlock", json={"user_id": other_user_id, "module_id": 5}, content_type="application/json")
+        check("POST /api/admin/unlock succeeds", r.status_code == 200)
+        r = c2b.get("/api/admin/stats")
+        target = next(u for u in r.get_json()["users"] if u["id"] == other_user_id)
+        check("Unlocked module appears in stats for that user", target["unlocked_modules"] == [5])
+
+        r = c2b.post("/api/admin/lock", json={"user_id": other_user_id, "module_id": 5}, content_type="application/json")
+        check("POST /api/admin/lock succeeds", r.status_code == 200)
+        r = c2b.get("/api/admin/stats")
+        target = next(u for u in r.get_json()["users"] if u["id"] == other_user_id)
+        check("Locked module removed from unlocked list", target["unlocked_modules"] == [])
+
+        r = c2b.post("/api/admin/unlock-all", json={"user_id": other_user_id}, content_type="application/json")
+        r = c2b.get("/api/admin/stats")
+        target = next(u for u in r.get_json()["users"] if u["id"] == other_user_id)
+        check("unlock-all unlocks every module", sorted(target["unlocked_modules"]) == list(range(12)))
+
+        r = c2b.post("/api/admin/lock-all", json={"user_id": other_user_id}, content_type="application/json")
+        r = c2b.get("/api/admin/stats")
+        target = next(u for u in r.get_json()["users"] if u["id"] == other_user_id)
+        check("lock-all clears every module", target["unlocked_modules"] == [])
+
+        r = c2b.post("/api/admin/unlock", json={"user_id": other_user_id, "module_id": 99}, content_type="application/json")
+        check("POST /api/admin/unlock rejects invalid module_id", r.status_code == 400)
+
+        # Grant admin access to the other user (super admin only)
+        r = c2b.get("/api/admin/admins")
+        admins = r.get_json()
+        check("GET /api/admin/admins reports primary admin", admins["super_admin"] == email)
+        check("Current session is recognized as super admin", admins["is_super_admin"] is True)
+
+        r = c2b.post("/api/admin/admins", json={"email": other_email}, content_type="application/json")
+        check("POST /api/admin/admins grants access", r.status_code == 200)
+
+        r = c2b.get("/api/admin/admins")
+        check("Granted admin now appears in admins list", any(g["email"] == other_email for g in r.get_json()["granted"]))
+
+    # The newly-granted admin should now have admin access, but NOT be able to grant further admins
+    with app2.test_client() as c5:
+        c5.post("/login", data={"email": other_email, "password": "test1234"}, follow_redirects=True)
+        r = c5.get("/api/me")
+        check("Granted admin's /api/me now reports is_admin true", r.get_json().get("is_admin") is True)
+        r = c5.get("/admin")
+        check("Granted admin can reach /admin", r.status_code == 200)
+        r = c5.post("/api/admin/admins", json={"email": "someoneelse@test.local"}, content_type="application/json")
+        check("Granted (non-super) admin cannot grant further admins", r.status_code == 403)
+
+    # Revoke the granted admin's access (super admin only)
+    with app2.test_client() as c2c:
+        c2c.post("/login", data={"email": email, "password": "test1234"}, follow_redirects=True)
+        r = c2c.post("/api/admin/admins/revoke", json={"email": email}, content_type="application/json")
+        check("Primary admin cannot be revoked from the portal", r.status_code == 400)
+
+        r = c2c.post("/api/admin/admins/revoke", json={"email": other_email}, content_type="application/json")
+        check("POST /api/admin/admins/revoke revokes access", r.status_code == 200)
+
+    with app2.test_client() as c6:
+        c6.post("/login", data={"email": other_email, "password": "test1234"}, follow_redirects=True)
+        r = c6.get("/api/me")
+        check("Revoked user's is_admin is false again", r.get_json().get("is_admin") is False)
+        r = c6.get("/admin", follow_redirects=False)
+        check("Revoked user can no longer reach /admin", r.status_code == 302)
 
     # Verify admin has full access even when APP_MODE=user (universal access)
     os.environ["APP_MODE"] = "user"

@@ -36,6 +36,7 @@ class User(UserMixin, db.Model):
     results = db.relationship("TestResult", backref="user", cascade="all, delete-orphan")
     feedback = db.relationship("Feedback", backref="user", cascade="all, delete-orphan")
     contributions = db.relationship("Contribution", backref="user", cascade="all, delete-orphan")
+    module_unlocks = db.relationship("ModuleUnlock", backref="user", cascade="all, delete-orphan")
 
 
 class Progress(db.Model):
@@ -100,6 +101,28 @@ class Contribution(db.Model):
     content = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(12), default="approved")  # 'approved' | 'pending' (optional moderation)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class AdminGrant(db.Model):
+    """An email granted admin access by the primary admin (ADMIN_EMAIL in
+    .env). The primary admin itself is never stored here — it's always
+    derived from the env var, so it can never be locked out via the UI."""
+    __tablename__ = "admin_grants"
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    granted_by = db.Column(db.String(120))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class ModuleUnlock(db.Model):
+    """An admin override that force-unlocks one module for one user,
+    bypassing the normal sequential knowledge-check gate."""
+    __tablename__ = "module_unlocks"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    module_id = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    __table_args__ = (db.UniqueConstraint("user_id", "module_id", name="uq_user_module"),)
 
 
 # ------------------------------------------------------------------

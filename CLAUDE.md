@@ -16,6 +16,12 @@ On `main`:
 - `feat/final-test-certificate` — `/api/test`, `/api/test/submit`,
   `/api/test/results` (server-scored, `PASS_MARK = 0.75`), in-app
   Performance Dashboard + printable certificate
+- `feat/admin-controls` — full answer key (`/api/admin/answer-key`),
+  multi-admin grant/revoke (`AdminGrant` table, `/api/admin/admins*`,
+  super-admin-only), per-user per-module unlock overrides (`ModuleUnlock`
+  table, `/api/admin/unlock|lock|unlock-all|lock-all`) that bypass the
+  sequential gate, and universal admin access to `/course` with every
+  module pre-unlocked for the admin's own account
 
 **All 12 modules now have real lesson content** (`mod1()`–`mod12()` in
 `templates/course.html`), each with multi-question knowledge checks except
