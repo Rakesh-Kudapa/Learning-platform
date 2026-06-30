@@ -3,18 +3,28 @@
 **Project:** Excelra RWD/RWE interactive learning platform (Flask + SQLite + vanilla-JS course).
 
 ## Current status (read this first)
-On `main`, two branches are merged and tested:
+On `main`:
 - `feat/auth` — login/register/logout, course behind a login wall
 - `feat/pre-post-feedback-knowledge` — pre/post knowledge-level gate,
   end-of-course feedback form, and crowdsourced "contributions" (extra
   learner knowledge), with a Learner Contributions page
+- `feat/ask-doubt-tutor` — per-module AI doubt panel
+- `feat/explainer-videos` — per-module video player, videos uploaded for
+  Modules 1–11 (Module 12 is references-only, no video)
+- `feat/admin-dashboard` — `/admin` (gated by `ADMIN_EMAIL`), `APP_MODE`
+  env var (`user`|`admin`|`full`) for two separate deploy targets
+- `feat/final-test-certificate` — `/api/test`, `/api/test/submit`,
+  `/api/test/results` (server-scored, `PASS_MARK = 0.75`), in-app
+  Performance Dashboard + printable certificate
 
-**Next up, in order:** `feat/ask-doubt-tutor` → `feat/final-test-certificate`
-→ `feat/course-progress`. See ARCHITECTURE.md §12 for the full plan.
+**All 12 modules now have real lesson content** (`mod1()`–`mod12()` in
+`templates/course.html`), each with multi-question knowledge checks except
+Module 12 (References — citation list only, no quiz, auto-marked complete
+on visit). The whole-course final exam (13 questions, one per content
+module) is in `course_data.TEST_QUESTIONS`.
 
-Only **Modules 1 and 2** have real lesson content written (in `mod1()`/`mod2()`
-inside `templates/course.html`). Modules 3–12 are placeholder "locked" stubs.
-**Do not write lesson content yourself** — see the section below.
+**Next up:** `feat/course-progress` (server-persisted progress beyond
+localStorage). See ARCHITECTURE.md §12.
 
 ## Division of labor — read carefully
 This project has two separate workstreams that must stay separate:
@@ -56,7 +66,7 @@ never alter the substance — flag it instead.
   with the `COURSE[]` array in `course.html` as modules are authored.
 
 ## Hard rules
-- **Final-test answers never go to the client.** Score server-side; `PASS_MARK = 0.70`.
+- **Final-test answers never go to the client.** Score server-side; `PASS_MARK = 0.75`.
 - Passwords stay hashed (Werkzeug). All `/api/*` and `/course` require login.
 - Validate/clamp all inputs; use SQLAlchemy (no raw SQL strings).
 

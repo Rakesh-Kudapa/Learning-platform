@@ -121,13 +121,30 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .callout p{margin:0;font-size:14.5px;color:var(--ink-soft)}
 
 .cards2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+.cards3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:20px 0}
 .dcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--shadow)}
 .dcard .dc-tag{font-family:'IBM Plex Mono';font-size:11px;font-weight:500;letter-spacing:.04em;
   padding:3px 9px;border-radius:6px;display:inline-block;margin-bottom:10px}
 .dcard.rwd .dc-tag{background:rgba(17,181,196,.12);color:#0a7c87}
 .dcard.rwe .dc-tag{background:rgba(232,79,156,.12);color:#b32d6e}
+.dcard.vlt .dc-tag{background:rgba(108,92,231,.12);color:#4a3db0}
 .dcard h4{font-size:16px;margin-bottom:6px}
 .dcard p{font-size:13.5px;color:var(--ink-soft);margin:0}
+
+/* flashcards (Module 4) */
+.flash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin:20px 0}
+.flash-card{perspective:1200px;height:140px;cursor:pointer}
+.flash-card .fc-inner{position:relative;width:100%;height:100%;transition:transform .5s cubic-bezier(.4,0,.2,1);
+  transform-style:preserve-3d}
+.flash-card.flipped .fc-inner{transform:rotateY(180deg)}
+.flash-card .fc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:var(--r);
+  padding:16px;display:flex;flex-direction:column;justify-content:center;box-shadow:var(--shadow);border:1px solid var(--line)}
+.flash-card .fc-front{background:var(--surface)}
+.flash-card .fc-front .fc-num{font-family:'IBM Plex Mono';font-size:10.5px;color:var(--ink-faint);margin-bottom:6px}
+.flash-card .fc-front .fc-term{font-family:'Space Grotesk';font-size:16.5px;font-weight:700;color:var(--ink)}
+.flash-card .fc-front .fc-hint{font-size:11.5px;color:var(--ink-faint);margin-top:8px}
+.flash-card .fc-back{background:var(--grad);transform:rotateY(180deg);color:#fff}
+.flash-card .fc-back p{font-size:12.5px;line-height:1.45;margin:0}
 
 .obj-list{list-style:none;margin:8px 0 4px}
 .obj-list li{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-soft);align-items:flex-start}
@@ -239,6 +256,51 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .contrib-card .cc-title{font-weight:600;font-size:15px}
 .contrib-card .cc-meta{font-size:11.5px;color:var(--ink-faint);font-family:'IBM Plex Mono'}
 .contrib-card p{font-size:14px;color:var(--ink-soft);margin:0}
+
+/* performance dashboard + final exam */
+.perf-table{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:14px}
+.perf-table th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);
+  font-weight:600;padding:8px 10px;border-bottom:2px solid var(--line)}
+.perf-table td{padding:10px 10px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+.perf-table tr:last-child td{border-bottom:none}
+.perf-bar-wrap{width:100%;background:var(--surface-2);border-radius:6px;height:8px;overflow:hidden;min-width:90px}
+.perf-bar{height:100%;border-radius:6px;background:var(--grad)}
+.perf-pct{font-family:'IBM Plex Mono';font-size:12.5px;color:var(--ink-soft);white-space:nowrap}
+.summary-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin:18px 0}
+.summary-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;text-align:center;box-shadow:var(--shadow)}
+.summary-card .sc-val{font-family:'Space Grotesk';font-size:26px;font-weight:700;color:var(--violet)}
+.summary-card .sc-lbl{font-size:11.5px;color:var(--ink-soft);font-weight:600;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+.exam-q{margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--line-soft)}
+.exam-q:last-child{border-bottom:none}
+.exam-q .eq-n{font-size:15.5px;font-weight:600;margin-bottom:12px;font-family:'Space Grotesk'}
+.exam-opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 15px;
+  border:1.5px solid var(--line);border-radius:var(--r-sm);margin-bottom:8px;background:var(--surface-2);
+  transition:.14s;font-size:14px;color:var(--ink);cursor:pointer}
+.exam-opt:hover{border-color:var(--violet);background:#fff}
+.exam-opt.sel{border-color:var(--violet);background:rgba(108,92,231,.08)}
+.exam-opt .ok{flex:none;width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line);
+  display:grid;place-items:center;font-family:'IBM Plex Mono';font-size:10.5px;color:var(--ink-faint)}
+.exam-opt.sel .ok{background:var(--violet);border-color:transparent;color:#fff}
+.exam-progress{font-size:12.5px;color:var(--ink-soft);margin-bottom:18px}
+.result-banner{border-radius:var(--r);padding:28px;text-align:center;margin:18px 0}
+.result-banner.pass{background:rgba(21,181,126,.08);border:1.5px solid rgba(21,181,126,.3)}
+.result-banner.fail{background:rgba(233,104,60,.08);border:1.5px solid rgba(233,104,60,.3)}
+.result-banner .rb-score{font-family:'Space Grotesk';font-size:44px;font-weight:700}
+.result-banner.pass .rb-score{color:var(--success)}
+.result-banner.fail .rb-score{color:var(--warn)}
+.result-banner .rb-msg{font-size:15px;color:var(--ink-soft);margin-top:6px}
+.cert-card{background:#fff;border:3px solid var(--violet);border-radius:18px;padding:50px 40px;text-align:center;
+  margin:20px 0;position:relative;background-image:linear-gradient(135deg,rgba(108,92,231,.04),rgba(232,79,156,.04))}
+.cert-card .cert-kicker{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--violet);font-weight:600}
+.cert-card .cert-title{font-family:'Space Grotesk';font-size:30px;font-weight:700;margin:14px 0 6px}
+.cert-card .cert-name{font-family:'Space Grotesk';font-size:26px;font-weight:700;background:var(--grad);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:18px 0}
+.cert-card .cert-body{font-size:14.5px;color:var(--ink-soft);max-width:480px;margin:0 auto 18px}
+.cert-card .cert-meta{font-size:12.5px;color:var(--ink-faint);font-family:'IBM Plex Mono';margin-top:18px}
+@media print{
+  .sidebar,.topbar,.hud,.narrate,.doubt,.pagenav,.btn,#toasts{display:none!important}
+  .cert-card{border:3px solid #6C5CE7;box-shadow:none}
+}
 .empty-state{text-align:center;padding:50px 20px;color:var(--ink-faint)}
 .empty-state .e-big{font-size:34px;margin-bottom:10px}
 
@@ -294,6 +356,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   .page{padding:26px 18px 80px}
   .page h1{font-size:30px}
   .cards2{grid-template-columns:1fr}
+  .cards3{grid-template-columns:1fr}
   .scrim{position:fixed;inset:0;background:rgba(19,27,46,.4);z-index:55;display:none}
   .scrim.open{display:block}
   .hud-stats .stat .lbl{display:none}
@@ -367,7 +430,7 @@ const store={
   load(){ try{const r=localStorage.getItem(SAVE_KEY);return r?JSON.parse(r):null;}catch(e){return mem[SAVE_KEY]||null;} },
   save(o){ try{localStorage.setItem(SAVE_KEY,JSON.stringify(o));}catch(e){mem[SAVE_KEY]=o;} }
 };
-let state = store.load() || { name:'', xp:0, done:{}, checks:{}, badges:[], current:0, preLevel:null, postLevel:null };
+let state = store.load() || { name:'', xp:0, done:{}, checks:{}, badges:[], current:0, preLevel:null, postLevel:null, examResult:null };
 function persist(){ store.save(state); }
 
 /* ============================================================
@@ -407,15 +470,113 @@ const COURSE=[
    answer:1,
    explain:'The order is Collect → Ingest → Standardize → Curate & QC → Analyse → Evidence. Standardizing makes the data speak one language; curation is the next step, where it gets cleaned and checked before any analysis happens.'
  }]},
- {id:3,title:'Key Terminologies',short:'Key Terminologies',type:'locked'},
- {id:4,title:'Stakeholders',short:'Stakeholders',type:'locked'},
- {id:5,title:'Data Landscape',short:'Data Landscape',type:'locked'},
- {id:6,title:'Industry Standards',short:'Industry Standards',type:'locked'},
- {id:7,title:'Technology Ecosystem',short:'Technology Ecosystem',type:'locked'},
- {id:8,title:'Current Industry Challenges',short:'Industry Challenges',type:'locked'},
- {id:9,title:'Role of Data Engineering & AI',short:'Data Engineering & AI',type:'locked'},
- {id:10,title:'Summary',short:'Summary',type:'locked'},
- {id:11,title:'References',short:'References',type:'locked'},
+ {id:3,title:'Key Terminologies',short:'Key Terminologies',type:'content',body:mod4,checks:[
+  {xp:15,q:'Which of these is an example of Real-World Data (RWD)?',
+   opts:['A randomized controlled trial result','A patient’s electronic health record from routine care','A drug’s chemical formula','A research grant hypothesis'],
+   answer:1,explain:'RWD is data generated during everyday care — like an EHR — not data from a controlled trial or lab bench.'},
+  {xp:15,q:'Which term describes a hidden factor that affects both the treatment a patient receives and their outcome, potentially distorting results?',
+   opts:['Cohort','Confounder','Phenotyping','Interoperability'],
+   answer:1,explain:'A confounder is exactly that hidden, distorting factor — it’s why real-world studies need careful statistical adjustment, unlike a randomized trial.'},
+  {xp:15,q:'What is the main purpose of the OMOP Common Data Model?',
+   opts:['To replace clinical trials','To let health data from different sources be organized identically, so studies are comparable','To generate AI explainer videos','To collect patient-reported survey data'],
+   answer:1,explain:'OMOP CDM defines a standard table structure so data from completely different source systems can be combined and compared.'},
+  {xp:15,q:'"Phenotyping" in this field means:',
+   opts:['Sequencing a patient’s genome','Identifying which patients truly have a condition using multiple data signals, not just one code','Removing personal details from a dataset','Billing an insurer for a procedure'],
+   answer:1,explain:'Phenotyping combines codes, labs, and notes to more reliably identify a condition than trusting a single diagnosis code alone.'},
+  {xp:15,q:'Why is de-identification required before most research use of real-world data?',
+   opts:['To make the data load faster','To remove or mask personal details so individuals can’t be identified','To convert data into FHIR format','To increase the sample size'],
+   answer:1,explain:'De-identification protects patient privacy by removing or masking identifying details — a requirement before most datasets can be used for research.'},
+ ]},
+ {id:4,title:'Stakeholders',short:'Stakeholders',type:'content',body:mod5,checks:[
+  {xp:15,q:'Which stakeholder primarily decides whether an insurer will pay for a treatment?',
+   opts:['Drug Safety team','Payers / HTA bodies','Patients','Data providers'],
+   answer:1,explain:'Payers and Health Technology Assessment (HTA) bodies evaluate a treatment’s value — often using RWE — to decide coverage and reimbursement.'},
+  {xp:15,q:'Which internal team is primarily responsible for watching real-world data for rare safety signals?',
+   opts:['Drug Safety / Pharmacovigilance','Market Access','Commercial / Strategy','Regulatory Affairs'],
+   answer:0,explain:'Drug Safety / Pharmacovigilance teams monitor real-world data specifically to catch safety signals that a smaller trial wouldn’t reveal.'},
+  {xp:15,q:'Who are both the original source of the data AND the ultimate intended beneficiary of real-world evidence?',
+   opts:['Regulators','Payers','Patients','Data providers'],
+   answer:2,explain:'Patients generate the underlying data through their care, and they’re the people every other stakeholder is ultimately trying to help.'},
+ ]},
+ {id:5,title:'Data Landscape',short:'Data Landscape',type:'content',body:mod6,checks:[
+  {xp:15,q:'A doctor’s free-text clinical notes are an example of:',
+   opts:['Structured data','Unstructured data','Claims data','Device/sensor data'],
+   answer:1,explain:'Free text without a fixed format — like hand-typed clinical notes — is unstructured data. It often needs extra processing before it can be analysed.'},
+  {xp:15,q:'A lab result stored in a fixed numeric field is an example of:',
+   opts:['Unstructured data','Structured data','A scanned document','A discharge summary'],
+   answer:1,explain:'Structured data lives in fixed fields — like a lab value or diagnosis code — making it easy for software to search and analyse directly.'},
+  {xp:15,q:'Which format is a modern, API-friendly standard for exchanging patient data between systems?',
+   opts:['HL7 v2','CSV','FHIR','PDF'],
+   answer:2,explain:'FHIR is the modern, API-based standard built for real-time data exchange between systems, unlike older formats like HL7 v2 or flat files.'},
+  {xp:15,q:'Why can claims data take weeks or months to be fully usable?',
+   opts:['It is encrypted permanently','It naturally lags before it’s complete and mature','It is always unstructured','It never includes billing codes'],
+   answer:1,explain:'Claims data has an inherent lag — it isn’t immediately available or complete, which is one of the typical data quality challenges.'},
+ ]},
+ {id:6,title:'Industry Standards',short:'Industry Standards',type:'content',body:mod7,checks:[
+  {xp:15,q:'Which standard is specifically designed to make sure a lab test means the same thing across different labs and systems?',
+   opts:['OMOP CDM','FHIR','LOINC','21 CFR Part 11'],
+   answer:2,explain:'LOINC is the standard naming system specifically for laboratory tests and measurements. OMOP standardizes data structure; FHIR standardizes exchange.'},
+  {xp:15,q:'What does the OMOP Common Data Model primarily solve?',
+   opts:['It gives data a common table structure so multi-source studies are possible','It generates AI explainer videos','It replaces the need for clinical trials','It encrypts patient records'],
+   answer:0,explain:'OMOP CDM lets health data from different source systems be organized identically, making large multi-source studies comparable.'},
+  {xp:15,q:'Which regulation sets requirements for electronic records and signatures to ensure a regulatory submission’s data trail is trustworthy?',
+   opts:['ICD-10','21 CFR Part 11','SNOMED CT','HL7 v2'],
+   answer:1,explain:'21 CFR Part 11 is a US FDA regulation specifically about the security and attributability of electronic records and signatures.'},
+  {xp:15,q:'How does SNOMED CT differ from ICD-10?',
+   opts:['SNOMED CT is only used for billing','SNOMED CT is a much more detailed clinical vocabulary than ICD-10','ICD-10 is newer than SNOMED CT','They are exactly the same thing'],
+   answer:1,explain:'SNOMED CT captures much finer clinical detail (findings, procedures, symptoms) than ICD-10, which is mainly used for diagnosis coding and billing.'},
+ ]},
+ {id:7,title:'Technology Ecosystem',short:'Technology Ecosystem',type:'content',body:mod8,checks:[
+  {xp:15,q:'Which tool would you use specifically to map a hospital’s own database structure onto the OMOP Common Data Model?',
+   opts:['A dashboard / BI tool','An ETL mapping tool like White Rabbit','A claims system','Python'],
+   answer:1,explain:'ETL mapping tools like White Rabbit are built specifically to help map a source system’s unique structure onto a standard model like OMOP.'},
+  {xp:15,q:'Where is clinical data first generated, before any processing happens?',
+   opts:['In a dashboard','In source systems like EHRs and claims platforms','In OHDSI ATLAS','In a Python script'],
+   answer:1,explain:'Source systems (EHRs, claims platforms) are where data is first created, during actual patient care or billing.'},
+  {xp:15,q:'Which tools are used specifically to process very large healthcare datasets efficiently?',
+   opts:['Spark / Databricks','OHDSI ATLAS only','A single Excel spreadsheet','LOINC'],
+   answer:0,explain:'Spark and Databricks are big-data processing tools built to handle very large datasets efficiently.'},
+ ]},
+ {id:8,title:'Current Industry Challenges',short:'Industry Challenges',type:'content',body:mod9,checks:[
+  {xp:15,q:'Why is "bias and confounding" a bigger concern in real-world data than in a randomized clinical trial?',
+   opts:['Real-world data is always smaller in size','Real-world data isn’t randomized, so treated and untreated patients can differ systematically for unrelated reasons','Real-world data is always unstructured','Regulators ignore real-world data entirely'],
+   answer:1,explain:'Randomization in a trial spreads differences between patients evenly across groups. Real-world data has no such randomization.'},
+  {xp:15,q:'Which laws specifically restrict how health data can be shared, stored, and re-used?',
+   opts:['HIPAA (US) and GDPR (EU)','ICD-10 and SNOMED CT','OMOP and FHIR','21 CFR Part 11 only'],
+   answer:0,explain:'HIPAA and GDPR are privacy laws that govern how health data can be shared and used.'},
+  {xp:15,q:'Two hospitals both claim to be "FHIR-compliant," but their underlying data still doesn’t line up perfectly. This illustrates which challenge?',
+   opts:['Scale','Interoperability','Regulatory acceptance','Bias'],
+   answer:1,explain:'Even with shared standards in place, real systems can still implement them inconsistently — that gap is an interoperability challenge.'},
+  {xp:15,q:'What does the "scale" challenge in real-world evidence mainly refer to?',
+   opts:['The need for serious infrastructure to process huge data volumes','The need for more clinical trials','A lack of clinical vocabulary standards','Patient privacy concerns'],
+   answer:0,explain:'Modern healthcare generates enormous data volumes — processing it requires real infrastructure, or even well-designed studies become impractical.'},
+ ]},
+ {id:9,title:'Role of Data Engineering & AI',short:'Data Engineering & AI',type:'content',body:mod10,checks:[
+  {xp:15,q:'What is the main business value of using AI/automation in this space?',
+   opts:['It removes the need for any human review of evidence','Faster, more consistent, more scalable evidence generation — with experts still reviewing the output','It eliminates the need for data standards','It only helps with patient-reported data'],
+   answer:1,explain:'AI and automation speed up and scale the work — but human experts still review and finalize outputs.'},
+  {xp:15,q:'What role does NLP (natural language processing) play in this space?',
+   opts:['It extracts structured information from free-text clinical notes','It replaces the need for data warehouses','It only generates videos','It is a privacy regulation'],
+   answer:0,explain:'NLP unlocks previously unusable unstructured data — like clinical notes — by pulling structured information out of free text.'},
+  {xp:15,q:'Why is ML-based phenotyping considered more reliable than relying on a single diagnosis code?',
+   opts:['It ignores lab results entirely','It combines many signals (codes, labs, notes) instead of trusting one code that could be missing or wrong','It only works with structured data','It replaces the need for any clinical review'],
+   answer:1,explain:'A single code can be missing or miscoded. ML phenotyping combines multiple signals for a more reliable picture of who truly has a condition.'},
+  {xp:15,q:'What is distinctive about "agentic" AI systems, as described in this module?',
+   opts:['They can carry out multi-step workflows with less manual intervention','They only translate text between languages','They replace the need for any data standards','They are limited to generating images'],
+   answer:0,explain:'Agentic AI systems coordinate multi-step tasks — like pulling data, analysing it, and drafting a summary — with far less manual handling than before.'},
+ ]},
+ {id:10,title:'Summary',short:'Summary',type:'content',body:mod11,checks:[
+  {xp:15,q:'Which of these best summarizes why real-world evidence exists as a field?',
+   opts:['To replace clinical trials entirely','To answer questions trials can’t affordably answer — about diverse, real patients, over the long term','To avoid the need for data standards','To eliminate the role of regulators'],
+   answer:1,explain:'RWE doesn’t replace trials — it fills the gaps trials structurally can’t: narrow populations, high cost, short follow-up, and artificial conditions.'},
+  {xp:15,q:'Complete the memory hook from this course: "Data is the ingredient, evidence is the ___."',
+   opts:['Meal','Standard','Pipeline','Regulation'],
+   answer:0,explain:'Data is the raw ingredient, and evidence is what you get after carefully analysing it — the meal.'},
+  {xp:15,q:'In the six-stage process from Module 3, which stage comes first?',
+   opts:['Analyse','Collect','Curate & quality-check','Generate evidence'],
+   answer:1,explain:'The process starts with Collect (gathering data from sources like EHRs and claims), before it’s ingested, standardized, curated, analysed, and turned into evidence.'},
+ ]},
+ {id:11,title:'References',short:'References',type:'content',body:mod12},
 ];
 
 const BADGES={
@@ -563,6 +724,510 @@ function mod3(){return `
  ${doubtPanel(2)}
  ${pageNav(2)}
 `;}
+
+function mod4(){
+  const terms=[
+    ['RWD','Real-World Data','Health data collected during everyday care, outside of a controlled clinical trial (e.g. EHRs, claims, registries).'],
+    ['RWE','Real-World Evidence','The clinical conclusions about a treatment’s use, benefits, or risks, drawn from analysing RWD.'],
+    ['EHR','Electronic Health Record','A digital version of a patient’s medical chart, maintained by a healthcare provider over time.'],
+    ['Claims data','','Records created when a provider bills an insurer for care; useful for tracking diagnoses, procedures, and costs.'],
+    ['Registry','','An organized system that tracks patients with a specific condition, exposure, or procedure, often over many years.'],
+    ['Cohort','','A defined group of patients who share a common characteristic and are studied together.'],
+    ['OMOP CDM','Common Data Model','A standard database structure that lets health data from many sources be stored the same way, so it can be analysed consistently.'],
+    ['FHIR','Fast Healthcare Interoperability Resources','A modern standard for exchanging patient data between different health IT systems.'],
+    ['HL7','','A family of international standards for exchanging clinical and administrative health data between systems (FHIR is its newest one).'],
+    ['ICD-10','','The standard coding system used worldwide to record diagnoses (e.g. a specific code for Type 2 diabetes).'],
+    ['SNOMED CT','','A detailed clinical vocabulary used to record findings, symptoms, and procedures inside electronic health records.'],
+    ['LOINC','','A standard naming system for laboratory tests and clinical measurements, so "blood glucose" means the same thing everywhere.'],
+    ['Structured data','','Information stored in a fixed, organized format, like a spreadsheet column (e.g. a lab value, a diagnosis code).'],
+    ['Unstructured data','','Free-text information without a fixed format, like a doctor’s hand-typed clinical notes.'],
+    ['External control arm','','A comparison group built from real-world data, used in place of (or alongside) a placebo group in a trial.'],
+    ['HEOR','Health Economics & Outcomes Research','The discipline that measures a treatment’s cost, value, and real-world outcomes, mainly to inform what payers will cover.'],
+    ['Confounder','','A hidden factor that affects both the treatment a patient receives and their outcome, which can distort results if not accounted for.'],
+    ['Interoperability','','The ability of different health IT systems to exchange data and correctly understand what it means.'],
+    ['Data warehouse','','A large storage system that holds cleaned, structured data from multiple sources, ready for analysis.'],
+    ['Phenotyping','','Using available data (codes, labs, notes) to accurately identify which patients truly have a specific condition.'],
+  ];
+  return `
+ <div class="eyebrow"><span class="mono">MODULE 04</span> • Key Terminologies</div>
+ <h1>The <em>vocabulary</em> of real-world evidence</h1>
+ <p class="lead">Every field has its own shorthand. Knowing these 20 terms means you can read any RWD/RWE document, conversation, or job posting and actually follow what’s being said.</p>
+
+ ${narrateBar('Module 4: Key Terminologies',3)}
+
+ <h2>Why terminology matters first</h2>
+ <p>Before standards, processes, or technology make sense, the <i>words</i> need to make sense. These 20 terms are the building blocks for every other module in this course — flip through them now, and the rest gets easier.</p>
+
+ <div class="flash-grid">
+   ${terms.map((t,i)=>`
+   <div class="flash-card" onclick="this.classList.toggle('flipped')">
+     <div class="fc-inner">
+       <div class="fc-face fc-front">
+         <div class="fc-num">${String(i+1).padStart(2,'0')}</div>
+         <div class="fc-term">${t[0]}</div>
+         ${t[1]?`<div class="fc-hint">${t[1]}</div>`:''}
+       </div>
+       <div class="fc-face fc-back"><p>${t[2]}</p></div>
+     </div>
+   </div>`).join('')}
+ </div>
+
+ <div class="callout"><div class="co-t">\u{1F4A1} Memory hook</div>
+   <p>Group them as you go: <b>sources</b> (EHR, claims, registry), <b>standards</b> (FHIR, HL7, ICD-10, SNOMED, LOINC, OMOP), and <b>method words</b> (cohort, confounder, phenotyping, external control arm). Three buckets, not twenty random words.</p></div>
+
+ ${checkBlock(3)}
+ ${doubtPanel(3)}
+ ${pageNav(3)}
+`;}
+
+function mod5(){return `
+ <div class="eyebrow"><span class="mono">MODULE 05</span> • Stakeholders</div>
+ <h1>Who’s actually in the <em>room</em></h1>
+ <p class="lead">Real-world evidence isn’t built by one team in isolation — it passes through many hands, each with a different stake in getting it right. Knowing who’s who tells you who you’re really working for.</p>
+
+ ${narrateBar('Module 5: Stakeholders',4)}
+
+ <h2>Inside the pharma or biotech company</h2>
+ <ul class="obj-list">
+   <li><span class="on">•</span><span><b>RWE / Epidemiology team</b> — designs the studies, chooses data sources, and runs the analysis.</span></li>
+   <li><span class="on">•</span><span><b>HEOR &amp; Market Access</b> — uses RWE to build the value story that convinces payers to cover a treatment.</span></li>
+   <li><span class="on">•</span><span><b>Medical Affairs</b> — uses RWE to answer clinician questions and support scientific communication after launch.</span></li>
+   <li><span class="on">•</span><span><b>Drug Safety / Pharmacovigilance</b> — monitors real-world data for safety signals that wouldn’t show up in a smaller trial.</span></li>
+   <li><span class="on">•</span><span><b>Regulatory Affairs</b> — packages RWE for submission to agencies like the FDA or EMA.</span></li>
+ </ul>
+
+ <div class="diagram">
+   ${stakeholderSVG()}
+   <div class="dg-cap">Patients sit at the center — the source of every data point, and the reason every other stakeholder is involved.</div>
+ </div>
+
+ <h2>Outside the company</h2>
+ <div class="cards2">
+   <div class="dcard rwd"><span class="dc-tag">DATA PROVIDERS</span><h4>EHR vendors, claims aggregators, registries</h4><p>Specialist partners (like Excelra) curate and structure that data so it’s actually usable.</p></div>
+   <div class="dcard rwe"><span class="dc-tag">REGULATORS</span><h4>FDA, EMA, and others</h4><p>Decide how much weight RWE can carry in an approval or label decision.</p></div>
+   <div class="dcard vlt"><span class="dc-tag">PAYERS</span><h4>Insurers &amp; HTA bodies</h4><p>Groups like NICE (UK) or ICER (US) decide what gets funded, based partly on real-world value evidence.</p></div>
+   <div class="dcard rwd"><span class="dc-tag">PROVIDERS</span><h4>Doctors &amp; hospitals</h4><p>Generate the underlying data through routine care, and later use RWE-backed guidance to treat patients.</p></div>
+ </div>
+
+ <h2>Who actually consumes the output</h2>
+ <ul class="obj-list">
+   <li><span class="on">✓</span><span><b>Regulators</b> — decide whether to approve a drug or expand its label.</span></li>
+   <li><span class="on">✓</span><span><b>Payers</b> — decide whether and how much to pay for a treatment.</span></li>
+   <li><span class="on">✓</span><span><b>Clinicians</b> — decide how to treat an individual patient.</span></li>
+   <li><span class="on">✓</span><span><b>Commercial teams</b> — decide strategy: pricing, positioning, market focus.</span></li>
+ </ul>
+
+ <div class="callout magenta"><div class="co-t">\u{1F517} The Excelra connection</div>
+   <p>Excelra sits in the "data providers" layer of this picture — curating and structuring real-world data so every other stakeholder, from RWE scientists to regulators, can actually trust and use it.</p></div>
+
+ ${checkBlock(4)}
+ ${doubtPanel(4)}
+ ${pageNav(4)}
+`;}
+
+function mod6(){return `
+ <div class="eyebrow"><span class="mono">MODULE 06</span> • Data Landscape</div>
+ <h1>What the raw material actually <em>looks</em> like</h1>
+ <p class="lead">Before data becomes evidence, it exists in dozens of shapes and formats, scattered across systems that were never designed to talk to each other. This module is a tour of that landscape.</p>
+
+ ${narrateBar('Module 6: Data Landscape',5)}
+
+ <h2>Types of data generated</h2>
+ <ul class="obj-list">
+   <li><span class="on">•</span><span><b>Clinical data</b> — diagnoses, procedures, lab results, vital signs, generated during a patient visit.</span></li>
+   <li><span class="on">•</span><span><b>Administrative / claims data</b> — what was billed to an insurer, useful for tracking utilization and cost, even without clinical detail.</span></li>
+   <li><span class="on">•</span><span><b>Patient-reported data</b> — surveys, symptom diaries, quality-of-life questionnaires filled in by the patient themselves.</span></li>
+   <li><span class="on">•</span><span><b>Device / sensor data</b> — readings from wearables, glucose monitors, or home blood pressure cuffs, generated continuously outside a clinic visit.</span></li>
+ </ul>
+
+ <div class="diagram">
+   ${dataGridSVG()}
+   <div class="dg-cap">Structured vs. unstructured data, with typical examples of each.</div>
+ </div>
+
+ <h2>Structured vs. unstructured data</h2>
+ <p><b>Structured data</b> lives in fixed fields — a lab value, a diagnosis code, a date of birth. It’s easy for software to search and analyse. <b>Unstructured data</b> is free text or media — clinical notes, scanned PDFs, discharge summaries. It holds rich detail but needs extra processing (often natural language processing) before a computer can use it. In practice, most real-world datasets are a <i>mix</i> of both, and a lot of the most clinically meaningful detail often hides in the unstructured notes.</p>
+
+ <h2>Common file formats</h2>
+ <ul class="obj-list">
+   <li><span class="on">•</span><span><b>Flat files / CSV</b> — simple spreadsheets, common for smaller extracts.</span></li>
+   <li><span class="on">•</span><span><b>Relational database tables</b> — structured data organized into linked tables, such as the OMOP Common Data Model.</span></li>
+   <li><span class="on">•</span><span><b>FHIR (JSON/XML)</b> — a modern, API-friendly format for exchanging patient data between systems.</span></li>
+   <li><span class="on">•</span><span><b>HL7 v2 messages</b> — an older but still very common messaging format used inside hospitals.</span></li>
+   <li><span class="on">•</span><span><b>Free text / scanned documents</b> — clinical notes and letters, usually needing extraction before they’re analysis-ready.</span></li>
+ </ul>
+
+ <h2>Typical data quality challenges</h2>
+ <p class="muted">Missingness (fields never filled in) · Miscoding (wrong or inconsistent codes) · Duplicate records (same patient, multiple systems) · Inconsistent units or timestamps · Lag (claims data can take weeks or months to fully mature).</p>
+
+ <div class="callout"><div class="co-t">⚠️ Common mistake</div>
+   <p>Don’t assume "more data" automatically means "better evidence." A huge but messy, inconsistently-coded dataset can be <i>less</i> useful than a smaller, well-curated one — which is exactly why curation and standards matter so much.</p></div>
+
+ ${checkBlock(5)}
+ ${doubtPanel(5)}
+ ${pageNav(5)}
+`;}
+
+function mod7(){return `
+ <div class="eyebrow"><span class="mono">MODULE 07</span> • Industry Standards</div>
+ <h1>The common <em>language</em> that makes any of this possible</h1>
+ <p class="lead">Without shared standards, data from one hospital can’t be compared to data from another. This module covers the standards that let real-world data from anywhere become evidence that’s actually trustworthy.</p>
+
+ ${narrateBar('Module 7: Industry Standards',6)}
+
+ <div class="diagram">
+   ${standardsSVG()}
+   <div class="dg-cap">Three families of standards — structure, vocabulary, and regulation — all feeding the same outcome.</div>
+ </div>
+
+ <h2>Data structure standards</h2>
+ <ul class="obj-list">
+   <li><span class="on">•</span><span><b>OMOP CDM</b> — defines a standard set of tables so health data from completely different source systems can be organized identically. Maintained by the OHDSI community.</span></li>
+   <li><span class="on">•</span><span><b>FHIR</b> — a modern, API-based standard for exchanging health data between systems in real time, widely adopted by current EHR platforms.</span></li>
+   <li><span class="on">•</span><span><b>HL7 v2</b> — an older, message-based standard still heavily used inside hospitals. FHIR is HL7’s newer, more flexible successor.</span></li>
+ </ul>
+
+ <h2>Clinical vocabulary standards</h2>
+ <ul class="obj-list">
+   <li><span class="on">•</span><span><b>ICD-10</b> — the standard coding system for diagnoses, used worldwide for billing and epidemiology.</span></li>
+   <li><span class="on">•</span><span><b>SNOMED CT</b> — a much more detailed clinical vocabulary, capturing fine distinctions beyond what ICD-10 can.</span></li>
+   <li><span class="on">•</span><span><b>LOINC</b> — the standard naming system for laboratory tests and measurements.</span></li>
+ </ul>
+
+ <h2>Regulatory standards</h2>
+ <ul class="obj-list">
+   <li><span class="on">•</span><span><b>FDA RWE Framework</b> — formal guidance describing when and how the FDA will consider real-world evidence in regulatory decisions.</span></li>
+   <li><span class="on">•</span><span><b>21 CFR Part 11</b> — a US FDA regulation setting requirements for electronic records and signatures, ensuring the data trail behind a submission is secure and trustworthy.</span></li>
+ </ul>
+
+ <div class="callout magenta"><div class="co-t">\u{1F517} The Excelra connection</div>
+   <p>Mapping messy source data onto standards like OMOP and FHIR — and making sure that mapping is documented and defensible — is core, daily work for data curation teams like Excelra’s.</p></div>
+
+ ${checkBlock(6)}
+ ${doubtPanel(6)}
+ ${pageNav(6)}
+`;}
+
+function mod8(){return `
+ <div class="eyebrow"><span class="mono">MODULE 08</span> • Technology Ecosystem</div>
+ <h1>The <em>machinery</em> behind the process</h1>
+ <p class="lead">Every stage of the journey from Module 3 runs on real technology. This module names the tools and shows how they hand work off to each other.</p>
+
+ ${narrateBar('Module 8: Technology Ecosystem',7)}
+
+ <div class="diagram">
+   ${techSVG()}
+   <div class="dg-cap">Source systems → cloud warehouse/lake → big-data processing → standardization → analytics &amp; dashboards.</div>
+ </div>
+
+ <h2>Source systems</h2>
+ <p><b>EHR systems</b> (e.g. Epic, Cerner) — where clinical data is first generated, during patient care. <b>Claims systems</b> — insurer platforms where billing data originates.</p>
+
+ <h2>Data infrastructure</h2>
+ <ul class="obj-list">
+   <li><span class="on">•</span><span><b>Data warehouses / data lakes</b> — large storage systems holding data from multiple sources. A warehouse usually holds cleaned, structured data; a lake can hold raw and unstructured data too.</span></li>
+   <li><span class="on">•</span><span><b>Cloud platforms</b> (AWS, Azure, Google Cloud) — where most modern data infrastructure is hosted.</span></li>
+   <li><span class="on">•</span><span><b>Spark / Databricks</b> — big-data processing tools that handle very large datasets efficiently.</span></li>
+ </ul>
+
+ <h2>Standardization tooling</h2>
+ <p><b>OHDSI ATLAS</b> — a tool from the OHDSI open-science community for exploring data already mapped to OMOP. <b>ETL mapping tools</b> (e.g. White Rabbit, Rabbit-in-a-Hat) — help map a source database’s unique structure onto a standard model like OMOP.</p>
+
+ <h2>Analytics &amp; reporting</h2>
+ <p><b>Python / R</b> — the most common languages for statistical analysis. <b>SQL</b> — used to query structured data directly. <b>Dashboards / BI tools</b> — turn analysis results into visual reports non-technical stakeholders can read.</p>
+
+ <div class="callout violet"><div class="co-t">\u{1F517} The Excelra connection</div>
+   <p>This is the exact stack Excelra’s data engineering teams work in daily — cloud platforms, Spark/Databricks-scale processing, and standardization tooling — to turn raw client data into analysis-ready datasets.</p></div>
+
+ ${checkBlock(7)}
+ ${doubtPanel(7)}
+ ${pageNav(7)}
+`;}
+
+function mod9(){return `
+ <div class="eyebrow"><span class="mono">MODULE 09</span> • Current Industry Challenges</div>
+ <h1>What still makes this <em>hard</em></h1>
+ <p class="lead">None of the previous modules are solved problems — they’re ongoing challenges that every team in this field works against, every day.</p>
+
+ ${narrateBar('Module 9: Current Industry Challenges',8)}
+
+ <div class="cards3">
+   <div class="dcard rwd"><span class="dc-tag">DATA QUALITY</span><h4>Missingness</h4><p>Source systems were built for care and billing, not research — so fields go unfilled, get miscoded, or arrive late.</p></div>
+   <div class="dcard rwe"><span class="dc-tag">SYSTEMS</span><h4>Interoperability</h4><p>Even with standards like FHIR and OMOP, real systems still vary in how consistently they’re implemented.</p></div>
+   <div class="dcard vlt"><span class="dc-tag">LEGAL</span><h4>Privacy &amp; compliance</h4><p>Laws like HIPAA (US) and GDPR (EU) protect patient privacy and restrict how health data can be shared, stored, and re-used.</p></div>
+   <div class="dcard rwd"><span class="dc-tag">STATISTICS</span><h4>Bias &amp; confounding</h4><p>Real-world data is never randomized — patients who receive a treatment differ systematically from those who don’t, for reasons unrelated to the treatment.</p></div>
+   <div class="dcard rwe"><span class="dc-tag">REGULATORY</span><h4>Acceptance</h4><p>Acceptance still varies by use case — RWE is more readily accepted for some questions than others.</p></div>
+   <div class="dcard vlt"><span class="dc-tag">INFRASTRUCTURE</span><h4>Scale</h4><p>Modern healthcare generates enormous volumes of data. Processing it requires real infrastructure.</p></div>
+ </div>
+
+ <div class="callout"><div class="co-t">⚠️ Common mistake</div>
+   <p>A frequent beginner mistake is assuming a bigger dataset automatically means stronger evidence. Scale without quality control just means the same problems (missingness, bias, miscoding) at a larger size.</p></div>
+
+ ${checkBlock(8)}
+ ${doubtPanel(8)}
+ ${pageNav(8)}
+`;}
+
+function mod10(){return `
+ <div class="eyebrow"><span class="mono">MODULE 10</span> • Role of Data Engineering &amp; AI</div>
+ <h1>Where this is <em>heading</em></h1>
+ <p class="lead">The challenges in Module 9 are exactly what modern data engineering and AI are starting to address — not by replacing the careful work, but by making it faster, more consistent, and more scalable.</p>
+
+ ${narrateBar('Module 10: Role of Data Engineering & AI',9)}
+
+ <div class="diagram">
+   ${aiBeforeAfterSVG()}
+   <div class="dg-cap">Manual work, accelerated — faster, more consistent, more scalable.</div>
+ </div>
+
+ <h2>Data engineering: automating the pipeline</h2>
+ <p>Manually mapping a source database onto a standard model used to take specialist teams weeks. Automated ETL pipelines now handle much of this work, making the process faster and more consistent — and freeing skilled people to focus on judgment calls rather than repetitive mapping.</p>
+
+ <h2>NLP: unlocking unstructured data</h2>
+ <p>A huge amount of clinically meaningful detail lives in free-text notes. Natural language processing can extract structured information — like smoking status, symptom mentions, or treatment response — from that text.</p>
+
+ <h2>ML phenotyping</h2>
+ <p>Rather than relying on a single diagnosis code (which can be missing or wrong), machine learning models can combine many signals — codes, labs, medication history, notes — to more accurately identify which patients truly have a given condition.</p>
+
+ <h2>GenAI &amp; agentic AI</h2>
+ <p>Generative AI can draft literature summaries and first-pass report sections, with a human expert still reviewing and finalizing every output. Newer "agentic" AI systems can carry out multi-step tasks — pulling data, running a standard analysis, and drafting a summary — with a person checking the result rather than running each step by hand.</p>
+
+ <h2>The business value, in plain terms</h2>
+ <p class="muted">Faster time-to-evidence. Lower cost per study. More consistent quality across teams and projects. And the ability to scale to far larger, more diverse datasets than manual methods ever could.</p>
+
+ <div class="callout violet"><div class="co-t">\u{1F517} The Excelra connection</div>
+   <p>This is the direction Excelra’s own AI-powered tools are heading — using automation and AI to accelerate exactly the kind of curation and analysis work this course has walked through.</p></div>
+
+ ${checkBlock(9)}
+ ${doubtPanel(9)}
+ ${pageNav(9)}
+`;}
+
+function mod11(){return `
+ <div class="eyebrow"><span class="mono">MODULE 11</span> • Summary</div>
+ <h1>Putting it all <em>together</em></h1>
+ <p class="lead">Ten modules, one connected story: how everyday healthcare data becomes the evidence that shapes real medical decisions. Here’s the whole arc in one place.</p>
+
+ ${narrateBar('Module 11: Summary',10)}
+
+ <div class="diagram">
+   ${recapStripSVG()}
+   <div class="dg-cap">The whole journey, module by module — you are here.</div>
+ </div>
+
+ <h2>Key takeaways</h2>
+ <ul class="obj-list">
+   <li><span class="on">✓</span><span><b>RWD is the ingredient, RWE is the meal</b> — collected data versus the conclusions drawn from analysing it.</span></li>
+   <li><span class="on">✓</span><span>RWE spans the <b>whole life sciences lifecycle</b>, strongest after launch, but increasingly used earlier too.</span></li>
+   <li><span class="on">✓</span><span>It exists because <b>trials have real limits</b>: narrow populations, high cost, short follow-up, artificial conditions.</span></li>
+   <li><span class="on">✓</span><span>Getting from raw data to evidence takes a <b>deliberate six-stage process</b>: collect → ingest → standardize → curate/QC → analyse → evidence.</span></li>
+   <li><span class="on">✓</span><span>A <b>wide circle of stakeholders</b> — inside and outside the company — both shapes and consumes that evidence.</span></li>
+   <li><span class="on">✓</span><span><b>Shared standards</b> (OMOP, FHIR, HL7, ICD-10, SNOMED, LOINC) are what make data from different places actually comparable.</span></li>
+   <li><span class="on">✓</span><span>Real <b>technology infrastructure</b> (cloud, big-data tools, analytics languages) is what makes the work possible at scale.</span></li>
+   <li><span class="on">✓</span><span><b>Real challenges remain</b>: data quality, interoperability, privacy, bias, regulatory acceptance, and scale.</span></li>
+   <li><span class="on">✓</span><span><b>AI and data engineering</b> are accelerating this work — without replacing careful human judgment.</span></li>
+ </ul>
+
+ <h2>Recommended further reading</h2>
+ <p class="muted">The FDA’s Real-World Evidence program materials (search "FDA Real-World Evidence Framework") · OHDSI.org — the open-science community behind the OMOP Common Data Model · ISPOR — publishes widely-used good-practice guidance for RWE and HEOR studies.</p>
+
+ <div class="callout"><div class="co-t">\u{1F4A1} Memory hook</div>
+   <p>If you remember only one sentence from this whole course: <b>data is the ingredient, evidence is the meal</b> — and turning one into the other is real, careful, valuable work.</p></div>
+
+ ${checkBlock(10)}
+ ${doubtPanel(10)}
+ ${pageNav(10)}
+`;}
+
+function mod12(){return `
+ <div class="eyebrow"><span class="mono">MODULE 12</span> • References</div>
+ <h1>Sources &amp; further <em>reading</em></h1>
+ <p class="lead">The standards, frameworks, and communities referenced throughout this course — in one place, for whenever you need to look something up.</p>
+
+ <h2>Regulatory frameworks</h2>
+ <ul class="obj-list">
+   <li><span class="on">•</span><span><b>FDA Real-World Evidence Framework</b> — formal guidance on how the FDA considers real-world evidence in regulatory decisions.</span></li>
+   <li><span class="on">•</span><span><b>21 CFR Part 11</b> — US FDA regulation on electronic records and signatures.</span></li>
+   <li><span class="on">•</span><span><b>HIPAA</b> (US) &amp; <b>GDPR</b> (EU) — the primary laws governing patient data privacy.</span></li>
+ </ul>
+
+ <h2>Data structure &amp; exchange standards</h2>
+ <ul class="obj-list">
+   <li><span class="on">•</span><span><b>OMOP Common Data Model</b> — maintained by OHDSI (Observational Health Data Sciences and Informatics), <i>ohdsi.org</i>.</span></li>
+   <li><span class="on">•</span><span><b>FHIR</b> (Fast Healthcare Interoperability Resources) and <b>HL7</b> — maintained by HL7 International, <i>hl7.org</i>.</span></li>
+ </ul>
+
+ <h2>Clinical vocabulary standards</h2>
+ <ul class="obj-list">
+   <li><span class="on">•</span><span><b>ICD-10</b> — World Health Organization diagnosis coding system.</span></li>
+   <li><span class="on">•</span><span><b>SNOMED CT</b> — maintained by SNOMED International.</span></li>
+   <li><span class="on">•</span><span><b>LOINC</b> — maintained by the Regenstrief Institute.</span></li>
+ </ul>
+
+ <h2>Further reading</h2>
+ <ul class="obj-list">
+   <li><span class="on">•</span><span>The FDA’s Real-World Evidence program materials (search "FDA Real-World Evidence Framework").</span></li>
+   <li><span class="on">•</span><span><b>OHDSI.org</b> — the open-science community behind the OMOP Common Data Model, including the ATLAS tool.</span></li>
+   <li><span class="on">•</span><span><b>ISPOR</b> (International Society for Pharmacoeconomics and Outcomes Research) — publishes widely-used good-practice guidance for RWE and HEOR studies.</span></li>
+ </ul>
+
+ <div class="callout"><div class="co-t">\u{1F393} Course complete</div>
+   <p>You’ve covered the full RWD/RWE journey. Head to the <b>Final Exam</b> from the sidebar to test what you’ve learned and unlock your certificate.</p></div>
+
+ ${doubtPanel(11)}
+ ${pageNav(11)}
+`;}
+
+/* SVG: concentric stakeholder map, patients at center */
+function stakeholderSVG(){return `
+ <svg viewBox="0 0 600 260" style="width:100%;height:auto" role="img" aria-label="Stakeholder map with patients at the center">
+   <circle cx="300" cy="130" r="200" fill="none" stroke="var(--line)" stroke-dasharray="3 5"/>
+   <circle cx="300" cy="130" r="46" fill="url(#sgrad)"/>
+   <text x="300" y="126" text-anchor="middle" font-family="Space Grotesk" font-size="13" font-weight="700" fill="#fff">Patients</text>
+   <text x="300" y="142" text-anchor="middle" font-family="Inter" font-size="9.5" fill="#fff" opacity=".9">source &amp; beneficiary</text>
+   <defs><radialGradient id="sgrad"><stop offset="0" stop-color="#6C5CE7"/><stop offset="1" stop-color="#E84F9C"/></radialGradient></defs>
+   ${[
+     ['RWE Team',300,40],['Market Access',466,80],['Drug Safety',520,200],
+     ['Regulators',420,250],['Payers',180,250],['Providers',80,200],['Data Providers',134,80],
+   ].map(([t,x,y])=>`
+     <line x1="300" y1="130" x2="${x}" y2="${y}" stroke="var(--line)" stroke-width="1.5"/>
+     <rect x="${x-44}" y="${y-16}" width="88" height="32" rx="9" fill="#fff" stroke="var(--line)"/>
+     <text x="${x}" y="${y+4.5}" text-anchor="middle" font-family="Inter" font-size="10" font-weight="600" fill="#28324A">${t}</text>
+   `).join('')}
+ </svg>`;}
+
+/* SVG: structured vs unstructured 2x2-style grid */
+function dataGridSVG(){
+  const struct=['Lab values','Diagnosis codes','Billing codes'];
+  const unstruct=['Clinical notes','Scanned letters','Discharge summaries'];
+  const row=(label,items,y,color)=>`
+   <rect x="20" y="${y}" width="120" height="${44}" rx="9" fill="${color}"/>
+   <text x="80" y="${y+27}" text-anchor="middle" font-family="Space Grotesk" font-size="12.5" font-weight="700" fill="#fff">${label}</text>
+   ${items.map((it,i)=>`
+     <rect x="${166+i*138}" y="${y}" width="124" height="44" rx="9" fill="#fff" stroke="var(--line)"/>
+     <text x="${166+i*138+62}" y="${y+27}" text-anchor="middle" font-family="Inter" font-size="10.5" fill="#28324A">${it}</text>
+   `).join('')}`;
+  return `<svg viewBox="0 0 580 130" style="width:100%;height:auto" role="img" aria-label="Structured versus unstructured data examples">
+    ${row('Structured',struct,10,'#11B5C4')}
+    ${row('Unstructured',unstruct,76,'#E84F9C')}
+  </svg>`;
+}
+
+/* SVG: 3 standards columns feeding one outcome */
+function standardsSVG(){
+  const cols=[
+    {t:'Data structure & exchange',items:['OMOP CDM','FHIR','HL7 v2'],color:'#11B5C4'},
+    {t:'Clinical vocabulary',items:['ICD-10','SNOMED CT','LOINC'],color:'#6C5CE7'},
+    {t:'Regulatory',items:['FDA RWE Framework','21 CFR Part 11'],color:'#E84F9C'},
+  ];
+  const colW=180, gap=20, pad=10;
+  let out='';
+  cols.forEach((c,ci)=>{
+    const x=pad+ci*(colW+gap);
+    out+=`<text x="${x+colW/2}" y="22" text-anchor="middle" font-family="Space Grotesk" font-size="11.5" font-weight="700" fill="${c.color}">${c.t}</text>`;
+    c.items.forEach((it,i)=>{
+      const y=36+i*42;
+      out+=`<rect x="${x}" y="${y}" width="${colW}" height="32" rx="8" fill="#fff" stroke="var(--line)"/>
+        <text x="${x+colW/2}" y="${y+20.5}" text-anchor="middle" font-family="Inter" font-size="11" fill="#28324A">${it}</text>`;
+    });
+  });
+  const W=pad*2+cols.length*colW+(cols.length-1)*gap;
+  return `<svg viewBox="0 0 ${W} 200" style="width:100%;height:auto" role="img" aria-label="Three families of industry standards">
+    ${out}
+    <line x1="${pad}" y1="178" x2="${W-pad}" y2="178" stroke="url(#stdgrad)" stroke-width="3" marker-end="url(#stdarr)"/>
+    <defs>
+      <linearGradient id="stdgrad" x1="0" x2="1"><stop offset="0" stop-color="#11B5C4"/><stop offset=".5" stop-color="#6C5CE7"/><stop offset="1" stop-color="#E84F9C"/></linearGradient>
+      <marker id="stdarr" markerWidth="9" markerHeight="9" refX="5" refY="3" orient="auto"><path d="M0 0 L5 3 L0 6 Z" fill="#E84F9C"/></marker>
+    </defs>
+    <text x="${W/2}" y="196" text-anchor="middle" font-family="Inter" font-size="11" font-style="italic" fill="#5A6781">→ comparable, trustworthy evidence</text>
+  </svg>`;
+}
+
+/* SVG: 5-box tech pipeline (reuses pipeline-style hotspot boxes) */
+function techSVG(){
+  const stages=[
+    {label:'Source systems',desc:'EHRs and claims platforms — where clinical data is first generated.'},
+    {label:'Cloud warehouse/lake',desc:'Holds data from multiple sources so it can be processed together.'},
+    {label:'Big-data processing',desc:'Spark / Databricks handle very large datasets efficiently.'},
+    {label:'Standardization',desc:'OMOP / ATLAS map source data onto a common structure.'},
+    {label:'Analytics & dashboards',desc:'Python / R / SQL / BI tools turn analysis into readable reports.'},
+  ];
+  const bw=128, bh=42, gap=14, pad=16, y=50;
+  const W=pad*2+stages.length*bw+(stages.length-1)*gap;
+  let boxes='', arrows='', tips='';
+  stages.forEach((s,i)=>{
+    const x=pad+i*(bw+gap);
+    const isLast=i===stages.length-1;
+    boxes+=`<rect class="tech-box" data-i="t${i}" x="${x}" y="${y}" width="${bw}" height="${bh}" rx="10" fill="${isLast?'url(#tgrad)':'#fff'}" stroke="${isLast?'none':'var(--line)'}" stroke-width="1.5" style="cursor:pointer"/>`;
+    boxes+=`<text class="tech-box" data-i="t${i}" x="${x+bw/2}" y="${y+bh/2+5}" text-anchor="middle" font-family="Space Grotesk" font-size="10.5" font-weight="600" fill="${isLast?'#fff':'#28324A'}" style="pointer-events:none">${s.label}</text>`;
+    if(i<stages.length-1){
+      const ax=x+bw+2, ax2=ax+gap-4;
+      arrows+=`<line x1="${ax}" y1="${y+bh/2}" x2="${ax2}" y2="${y+bh/2}" stroke="var(--noise)" stroke-width="2" marker-end="url(#tarr)"/>`;
+    }
+    const tipW=190, tipH=46;
+    const tipX=Math.min(x, W-tipW-10);
+    tips+=`<g class="pip-tip" id="pip-tip-t${i}" opacity="0" style="pointer-events:none;transition:opacity .2s">
+      <rect x="${tipX}" y="${y+bh+10}" width="${tipW}" height="${tipH}" rx="8" fill="var(--ink)" opacity=".92"/>
+      <foreignObject x="${tipX+10}" y="${y+bh+14}" width="${tipW-20}" height="${tipH-8}">
+        <p xmlns="http://www.w3.org/1999/xhtml" style="font-size:10.5px;color:#fff;line-height:1.35;margin:0;font-family:Inter,sans-serif">${s.desc}</p>
+      </foreignObject>
+    </g>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${y+bh+70}" style="width:100%;height:auto" role="img" aria-label="Technology pipeline: source systems to analytics">
+    <defs>
+      <linearGradient id="tgrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6C5CE7"/><stop offset="1" stop-color="#E84F9C"/></linearGradient>
+      <marker id="tarr" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0 L5 3 L0 6 Z" fill="var(--noise)"/></marker>
+    </defs>
+    ${arrows}${boxes}${tips}
+  </svg>`;
+}
+
+function wireTechTips(){
+  document.querySelectorAll('.tech-box').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{const t=document.getElementById('pip-tip-'+el.dataset.i);if(t)t.setAttribute('opacity','1')});
+    el.addEventListener('mouseleave',()=>{const t=document.getElementById('pip-tip-'+el.dataset.i);if(t)t.setAttribute('opacity','0')});
+  });
+}
+
+/* SVG: manual vs AI-accelerated before/after */
+function aiBeforeAfterSVG(){
+  const manual=['Slow manual mapping','Manual note review','Single-code phenotyping','Manual report writing'];
+  const ai=['Automated ETL','NLP extraction','ML phenotyping','GenAI drafting'];
+  const col=(items,x,color,title)=>`
+    <text x="${x+110}" y="20" text-anchor="middle" font-family="Space Grotesk" font-size="12.5" font-weight="700" fill="${color}">${title}</text>
+    ${items.map((it,i)=>`
+      <rect x="${x}" y="${36+i*42}" width="220" height="32" rx="8" fill="#fff" stroke="var(--line)"/>
+      <text x="${x+110}" y="${36+i*42+20.5}" text-anchor="middle" font-family="Inter" font-size="11" fill="#28324A">${it}</text>
+    `).join('')}`;
+  return `<svg viewBox="0 0 560 220" style="width:100%;height:auto" role="img" aria-label="Manual versus AI-accelerated workflow">
+    ${col(manual,10,'#8C97AE','Manual')}
+    ${col(ai,330,'#6C5CE7','AI-accelerated')}
+    <line x1="250" y1="100" x2="310" y2="100" stroke="url(#aigrad)" stroke-width="3" marker-end="url(#aiarr)"/>
+    <defs>
+      <linearGradient id="aigrad" x1="0" x2="1"><stop offset="0" stop-color="#11B5C4"/><stop offset="1" stop-color="#E84F9C"/></linearGradient>
+      <marker id="aiarr" markerWidth="9" markerHeight="9" refX="5" refY="3" orient="auto"><path d="M0 0 L5 3 L0 6 Z" fill="#E84F9C"/></marker>
+    </defs>
+    <text x="280" y="205" text-anchor="middle" font-family="Inter" font-size="10.5" font-style="italic" fill="#5A6781">faster · more consistent · more scalable</text>
+  </svg>`;
+}
+
+/* SVG: 10-module recap strip */
+function recapStripSVG(){
+  const labels=['Intro','Business','Process','Terms','Stakeholders','Data','Standards','Tech','Challenges','AI & Eng'];
+  const n=labels.length, pad=24, gap=(560-pad*2)/(n-1);
+  return `<svg viewBox="0 0 560 90" style="width:100%;height:auto" role="img" aria-label="Course journey recap, modules 1 through 10">
+    <line x1="${pad}" y1="34" x2="${560-pad}" y2="34" stroke="var(--line)" stroke-width="2"/>
+    ${labels.map((l,i)=>{
+      const x=pad+i*gap;
+      const isLast=i===n-1;
+      return `<circle cx="${x}" cy="34" r="9" fill="${isLast?'url(#recgrad)':'#fff'}" stroke="${isLast?'none':'var(--violet)'}" stroke-width="2"/>
+        <text x="${x}" y="38" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="${isLast?'#fff':'#6C5CE7'}" font-weight="700">${i+1}</text>
+        <text x="${x}" y="58" text-anchor="middle" font-family="Inter" font-size="8.5" fill="#5A6781" transform="rotate(0)">${l}</text>`;
+    }).join('')}
+    <text x="${pad+(n-1)*gap}" y="80" text-anchor="middle" font-family="Inter" font-size="9.5" font-weight="700" fill="#E84F9C">You are here</text>
+    <defs><linearGradient id="recgrad" x1="0" x2="1"><stop offset="0" stop-color="#6C5CE7"/><stop offset="1" stop-color="#E84F9C"/></linearGradient></defs>
+  </svg>`;
+}
 
 /* SVG: 6-stage pipeline with interactive hotspot tooltips */
 function pipelineSVG(){
@@ -758,6 +1423,14 @@ function render(){
     view.innerHTML=renderSettingsHTML(); loadSettings();
     document.getElementById('scroll').scrollTop=0; persist(); return;
   }
+  if(state.current==='exam'){
+    view.innerHTML=renderExamHTML();
+    document.getElementById('scroll').scrollTop=0; persist(); return;
+  }
+  if(state.current==='certificate'){
+    view.innerHTML=renderCertificateHTML();
+    document.getElementById('scroll').scrollTop=0; persist(); return;
+  }
   const m=COURSE[state.current];
   if(m.type==='locked'){
     view.innerHTML=`<div class="locked-page">
@@ -767,7 +1440,8 @@ function render(){
     </div>`;
   }else{
     view.innerHTML=m.body();
-    requestAnimationFrame(()=>{buildWaveHero();wirePipelineTips();probeVideos();});
+    if(!m.checks||m.checks.length===0){ if(!state.done[state.current]) state.done[state.current]=true; }
+    requestAnimationFrame(()=>{buildWaveHero();wirePipelineTips();wireTechTips();probeVideos();});
   }
   document.getElementById('scroll').scrollTop=0;
   persist();
@@ -789,7 +1463,11 @@ function renderNav(){
   const extra=document.getElementById('extraList');
   if(extra){
     const finOn=state.current==='finale', conOn=state.current==='contrib';
+    const examOn=state.current==='exam'||state.current==='certificate';
+    const examLocked=!allModulesDone();
     extra.innerHTML=`
+      <button class="extra-btn" style="${examOn?'background:var(--surface-2);color:var(--ink)':''}" onclick="${examLocked?`toast('lvl','\u{1F512}','Finish every module to unlock the final exam')`:`go('exam')`}">
+        <span class="e-ico">${examLocked?'\u{1F512}':'\u{1F393}'}</span><span>Performance &amp; Final Exam</span></button>
       <button class="extra-btn" style="${finOn?'background:var(--surface-2);color:var(--ink)':''}" onclick="go('finale')">
         <span class="e-ico">\u2728</span><span>My Growth &amp; Feedback</span></button>
       <button class="extra-btn" style="${conOn?'background:var(--surface-2);color:var(--ink)':''}" onclick="go('contrib')">
@@ -804,6 +1482,10 @@ function isLocked(i){
   const prev=COURSE[i-1];
   if(prev.type==='locked') return true;
   return !allChecked(i-1);
+}
+
+function allModulesDone(){
+  return COURSE.every((m,i)=>allChecked(i));
 }
 
 function renderHUD(){
@@ -870,6 +1552,8 @@ function getChecks(i){
 }
 
 function allChecked(i){
+  const m=COURSE[i];
+  if(!m||!m.checks||m.checks.length===0) return true;
   const r=getChecks(i);
   return r.length>0&&r.every(v=>v!=null);
 }
@@ -1118,6 +1802,163 @@ async function submitContribution(){
 }
 
 /* ============================================================
+   PERFORMANCE DASHBOARD + FINAL EXAM + CERTIFICATE
+============================================================ */
+function modulePerf(i){
+  const m=COURSE[i];
+  if(!m.checks||m.checks.length===0) return null;
+  const results=getChecks(i);
+  const correct=results.filter(r=>r===true).length;
+  return {correct, total:m.checks.length, pct: m.checks.length? Math.round(correct/m.checks.length*100):0};
+}
+
+function renderExamHTML(){
+  const rows=COURSE.map((m,i)=>{
+    const p=modulePerf(i);
+    if(!p) return '';
+    return `<tr>
+      <td><b>${String(i+1).padStart(2,'0')}</b> &nbsp;${m.title}</td>
+      <td>${p.correct} / ${p.total}</td>
+      <td><div class="perf-bar-wrap"><div class="perf-bar" style="width:${p.pct}%"></div></div></td>
+      <td class="perf-pct">${p.pct}%</td>
+    </tr>`;
+  }).join('');
+
+  const totalQ=COURSE.reduce((s,m)=>s+(m.checks?m.checks.length:0),0);
+  const totalCorrect=COURSE.reduce((s,m,i)=>{const p=modulePerf(i); return s+(p?p.correct:0);},0);
+  const overallPct=totalQ? Math.round(totalCorrect/totalQ*100):0;
+
+  const exam=state.examResult;
+  const passMark=Math.round((exam&&exam.pass_mark?exam.pass_mark:0.75)*100);
+
+  let examSection='';
+  if(exam){
+    examSection=`
+    <div class="result-banner ${exam.passed?'pass':'fail'}">
+      <div class="rb-score">${exam.score} / ${exam.total}</div>
+      <div class="rb-msg">${exam.passed?`\u{1F389} You passed! (need ${passMark}%+) — your certificate is ready.`:`Not quite — you need ${passMark}%+ to pass. Give it another go.`}</div>
+      <div style="margin-top:18px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        ${exam.passed?`<button class="btn prim" onclick="go('certificate')">View certificate →</button>`:''}
+        <button class="btn ghost" onclick="startExam()">${exam.passed?'Retake exam':'Try again'}</button>
+      </div>
+    </div>`;
+  }else{
+    examSection=`
+    <p class="muted">You’ve completed every module — nice work. When you’re ready, take the ${TEST_QUESTIONS_COUNT}-question final exam covering the whole course. You need <b>${passMark}%</b> or higher to pass and unlock your certificate.</p>
+    <button class="btn prim" style="margin-top:6px" onclick="startExam()">Start final exam →</button>`;
+  }
+
+  return `
+   <div class="eyebrow"><span class="mono">PERFORMANCE</span> • Dashboard &amp; Final Exam</div>
+   <h1>Your <em>performance</em></h1>
+   <p class="lead">Every module's knowledge-check score, plus the whole-course final exam and your certificate.</p>
+
+   <div class="summary-row">
+     <div class="summary-card"><div class="sc-val">${totalCorrect}/${totalQ}</div><div class="sc-lbl">Module Qs Correct</div></div>
+     <div class="summary-card"><div class="sc-val">${overallPct}%</div><div class="sc-lbl">Module Accuracy</div></div>
+     <div class="summary-card"><div class="sc-val">${state.xp}</div><div class="sc-lbl">Total XP</div></div>
+     <div class="summary-card"><div class="sc-val">${exam?(exam.passed?'✓':exam.score+'/'+exam.total):'—'}</div><div class="sc-lbl">Final Exam</div></div>
+   </div>
+
+   <div class="wrap-box">
+     <h3 style="margin-top:0">Module-by-module performance</h3>
+     <table class="perf-table">
+       <thead><tr><th>Module</th><th>Score</th><th style="width:130px">Progress</th><th></th></tr></thead>
+       <tbody>${rows}</tbody>
+     </table>
+   </div>
+
+   <div class="wrap-box" id="examBox">
+     <h3 style="margin-top:0">Final Exam</h3>
+     <div id="examBody">${examSection}</div>
+   </div>
+  `;
+}
+
+const TEST_QUESTIONS_COUNT=13;
+let examQuestions=[], examAnswers={};
+
+async function startExam(){
+  const box=document.getElementById('examBody');
+  box.innerHTML='<p class="muted">Loading exam…</p>';
+  try{
+    const r=await fetch('/api/test');
+    examQuestions=await r.json();
+    examAnswers={};
+    renderExamQuestions();
+  }catch(e){
+    box.innerHTML='<p class="muted">Couldn’t load the exam — check your connection and try again.</p>';
+  }
+}
+
+function renderExamQuestions(){
+  const box=document.getElementById('examBody');
+  const answeredCount=Object.keys(examAnswers).length;
+  box.innerHTML=`
+    <div class="exam-progress">${answeredCount} of ${examQuestions.length} answered</div>
+    ${examQuestions.map((q,qi)=>`
+      <div class="exam-q">
+        <div class="eq-n">${qi+1}. ${q.q}</div>
+        ${q.options.map((o,oi)=>`
+          <button class="exam-opt ${examAnswers[q.id]===oi?'sel':''}" onclick="selectExamAnswer(${q.id},${oi})">
+            <span class="ok">${String.fromCharCode(65+oi)}</span><span>${o}</span>
+          </button>`).join('')}
+      </div>`).join('')}
+    <button class="btn prim" ${answeredCount<examQuestions.length?'disabled':''} onclick="submitExam()">Submit final exam →</button>
+    ${answeredCount<examQuestions.length?`<p class="muted" style="margin-top:10px">Answer every question to submit.</p>`:''}
+  `;
+}
+
+function selectExamAnswer(qid,oi){
+  examAnswers[qid]=oi;
+  renderExamQuestions();
+}
+
+async function submitExam(){
+  const box=document.getElementById('examBody');
+  box.innerHTML='<p class="muted">Scoring your exam…</p>';
+  try{
+    const r=await fetch('/api/test/submit',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({answers:examAnswers})});
+    const result=await r.json();
+    state.examResult=result; persist();
+    if(result.passed){ toast('badge','\u{1F393}','Certified! You passed the final exam'); }
+    else{ toast('lvl','\u{1F4DD}','Not quite — review and try again'); }
+    render();
+  }catch(e){
+    box.innerHTML='<p class="muted">Couldn’t submit — check your connection and try again.</p><button class="btn ghost" onclick="renderExamQuestions()">Back to exam</button>';
+  }
+}
+
+function renderCertificateHTML(){
+  const exam=state.examResult;
+  if(!exam||!exam.passed){
+    return `<div class="eyebrow"><span class="mono">CERTIFICATE</span></div>
+      <h1>Not unlocked <em>yet</em></h1>
+      <p class="lead">Pass the final exam to unlock your certificate.</p>
+      <button class="btn prim" onclick="go('exam')">Go to final exam →</button>`;
+  }
+  const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  return `
+   <div class="eyebrow"><span class="mono">CERTIFICATE</span> • Course Complete</div>
+   <h1>Your <em>certificate</em></h1>
+   <p class="lead">Congratulations — print or save this as a PDF using your browser's print dialog.</p>
+
+   <div class="cert-card">
+     <div class="cert-kicker">Excelra • Life Sciences Learning</div>
+     <div class="cert-title">Certificate of Completion</div>
+     <p class="muted">Real-World Data &amp; Real-World Evidence</p>
+     <div class="cert-name">${state.name||'Learner'}</div>
+     <div class="cert-body">has successfully completed all 12 modules of the Real-World Data &amp; Real-World Evidence course and passed the final assessment with a score of <b>${exam.score}/${exam.total}</b> (${Math.round(exam.score/exam.total*100)}%).</div>
+     <div class="cert-meta">Issued ${today} • Excelra RWD/RWE Learning Platform</div>
+   </div>
+
+   <button class="btn prim" onclick="window.print()">\u{1F5A8} Print / Save as PDF</button>
+   <button class="btn ghost" onclick="go('exam')" style="margin-left:10px">← Back to performance</button>
+  `;
+}
+
+/* ============================================================
    LEARNER CONTRIBUTIONS PAGE
 ============================================================ */
 function renderContribHTML(){
@@ -1253,7 +2094,7 @@ window.addEventListener('load',async ()=>{
       const prevEmail=state._email||'';
       if(prevEmail && prevEmail!==me.email){
         Object.keys(state).forEach(k=>delete state[k]);
-        Object.assign(state,{name:'',xp:0,done:{},checks:{},badges:[],current:0,preLevel:null,postLevel:null});
+        Object.assign(state,{name:'',xp:0,done:{},checks:{},badges:[],current:0,preLevel:null,postLevel:null,examResult:null});
       }
       state._email=me.email;
       state.name=me.name||''; persist();
@@ -1273,6 +2114,15 @@ window.addEventListener('load',async ()=>{
       persist();
     }
   }catch(e){ console.warn('api/assessment:',e); }
+
+  try{
+    const rt=await fetch('/api/test/results');
+    if(rt.ok){
+      const t=await rt.json();
+      state.examResult=t.best?{...t.best,pass_mark:t.pass_mark}:null;
+      persist();
+    }
+  }catch(e){ console.warn('api/test/results:',e); }
 
   if(!state.preLevel){ showPreGate(); }
   else{ try{ render(); }catch(e){ console.error('render:',e); } }

@@ -7,7 +7,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 from app import create_app
 from models import db
-from course_data import MODULE_CONTEXT, MODULE_TITLES
+from course_data import MODULE_CONTEXT, MODULE_TITLES, TEST_QUESTIONS, PASS_MARK
 
 def smoke():
     app = create_app()
@@ -64,6 +64,36 @@ def smoke():
         r = c.post("/api/ask", json={"module_id": 99, "question": "test"}, content_type="application/json")
         check("POST /api/ask rejects invalid module_id", r.status_code == 400)
 
+        # --- Modules 4-12 wiring ---
+        for n, fn in [(4,"mod4"),(5,"mod5"),(6,"mod6"),(7,"mod7"),(8,"mod8"),
+                      (9,"mod9"),(10,"mod10"),(11,"mod11"),(12,"mod12")]:
+            check(f"course.html contains {fn}()", f"function {fn}()" in html)
+        check("COURSE[] no longer has any locked modules", "type:'locked'" not in html)
+        check("Module 4 flashcard grid wired", "flash-grid" in html)
+        check("Module 12 References has no checks (reference-only)", "body:mod12}" in html)
+        check("doubt panel wired into all 12 modules", all(f"doubtPanel({i})" in html for i in range(12)))
+
+        # --- Final exam endpoints ---
+        r = c.get("/api/test")
+        check("GET /api/test returns 200", r.status_code == 200)
+        questions = r.get_json()
+        check("GET /api/test returns all questions", len(questions) == len(TEST_QUESTIONS))
+        check("GET /api/test never exposes the answer key", all("answer" not in q for q in questions))
+
+        correct_answers = {str(i): q["answer"] for i, q in enumerate(TEST_QUESTIONS)}
+        r = c.post("/api/test/submit", json={"answers": correct_answers}, content_type="application/json")
+        result = r.get_json()
+        check("POST /api/test/submit scores a perfect run as passed", result["passed"] is True and result["score"] == len(TEST_QUESTIONS))
+
+        wrong_answers = {str(i): (q["answer"] + 1) % len(q["options"]) for i, q in enumerate(TEST_QUESTIONS)}
+        r = c.post("/api/test/submit", json={"answers": wrong_answers}, content_type="application/json")
+        check("POST /api/test/submit scores an all-wrong run as failed", r.get_json()["passed"] is False)
+
+        r = c.get("/api/test/results")
+        results = r.get_json()
+        check("GET /api/test/results returns best attempt", results["best"]["score"] == len(TEST_QUESTIONS))
+        check("GET /api/test/results reports correct pass_mark", results["pass_mark"] == PASS_MARK)
+
     # --- Admin dashboard tests ---
     os.environ["ADMIN_EMAIL"] = email  # the smoke user is now admin
     app2 = create_app()
@@ -97,6 +127,8 @@ def smoke():
     check("MODULE_TITLES[2] is End-to-End Process", MODULE_TITLES[2] == "End-to-End Process")
     check("MODULE_CONTEXT has key 2", 2 in MODULE_CONTEXT)
     check("MODULE_CONTEXT[2] mentions six stages", "six stages" in MODULE_CONTEXT[2])
+    check("PASS_MARK is 75%", PASS_MARK == 0.75)
+    check("TEST_QUESTIONS covers all 11 content modules", len(TEST_QUESTIONS) == 13)
 
     print(f"\n{'='*40}")
     print(f"  {ok} passed, {fail} failed")

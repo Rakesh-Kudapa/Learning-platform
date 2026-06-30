@@ -208,16 +208,22 @@ Server builds the prompt from `course_data.MODULE_CONTEXT[module_id]`, calls
 `llm.ask_tutor()`, logs to `doubts`, returns the answer. Never expose the API key
 to the client. Rate-limit lightly (e.g. per-user cooldown) to protect the free tier.
 
-### Final test & certificate — **PLANNED** (`feat/final-test-certificate`)
+### Final test & certificate — **BUILT** (`feat/final-test-certificate`)
 | Method | Path | Body | Returns |
 |---|---|---|---|
 | GET | `/api/test` | — | `[{id,q,options[]}]` — **answers stripped** |
-| POST | `/api/test/submit` | `{answers:{qid:optionIndex}}` | `{score,total,passed}` |
-| GET | `/certificate` | — | rendered certificate if `passed` else 302 back |
+| POST | `/api/test/submit` | `{answers:{qid:optionIndex}}` | `{score,total,passed,pass_mark}` |
+| GET | `/api/test/results` | — | `{attempts:[...], best:{...}, pass_mark}` |
 
 **Scoring is server-side only** (answers live in `course_data.TEST_QUESTIONS`,
-`PASS_MARK = 0.70`). The browser never receives correct answers. Certificate is
-stamped with `current_user.name`, date, and score; printable / downloadable.
+`PASS_MARK = 0.75`). The browser never receives correct answers. The certificate
+is a client-rendered view (`state.current==='certificate'` in `course.html`),
+gated on `state.examResult.passed` (hydrated from `/api/test/results` on boot),
+stamped with the user's name, date, and score; printable via `window.print()`.
+The **Performance Dashboard** (`state.current==='exam'`) shows per-module
+knowledge-check scores (computed client-side from `state.checks`) alongside
+the final-exam section, and is reachable once every module is complete
+(`allModulesDone()`).
 
 ### Feedback — **BUILT** (`feat/pre-post-feedback-knowledge`)
 | Method | Path | Body | Returns |
@@ -370,9 +376,9 @@ One feature = one branch off `main`; merge when green. Content authoring runs in
 1. `feat/auth` — login/register/logout, course behind login wall ............. **BUILT ✅**
 2. `feat/course-progress` — `/api/progress`; front end loads/saves state to DB
 3. `feat/pre-post-feedback-knowledge` — pre/post knowledge gate + growth view; end-of-course feedback; crowdsourced contributions + Learner Contributions page ... **BUILT ✅**
-4. `feat/ask-doubt-tutor` — per-module doubt panel; `/api/ask` → `llm.py`; logs to `doubts`
-5. `feat/final-test-certificate` — `/api/test`, `/api/test/submit` (server-scored), `/certificate`
-6. `content/modules-3-12` — author remaining modules + interactions (parallel)
+4. `feat/ask-doubt-tutor` — per-module doubt panel; `/api/ask` → `llm.py`; logs to `doubts` ... **BUILT ✅**
+5. `feat/final-test-certificate` — `/api/test`, `/api/test/submit` (server-scored), in-app certificate view ... **BUILT ✅**
+6. `content/modules-3-12` — author remaining modules + interactions ... **BUILT ✅** (all 12 modules wired)
 
 **Definition of done per branch:** endpoint(s) + front-end wiring + a short smoke
 test + README/ARCHITECTURE note updated.
@@ -412,7 +418,7 @@ VS Code: press **F5** → "Flask: run course backend".
 | Stakeholders | Module 5 |
 | 15–20 terminologies | Module 4 flash cards |
 | Interactive navigation, knowledge checks | Front-end engine (§7–8) |
-| ≥10-question final assessment | §6 final test (12 Q) |
+| ≥10-question final assessment | §6 final test (13 Q, 1 per content module) |
 | AI narration | Web Speech (+ ElevenLabs hero VO) |
 | Original diagrams/infographics | SVG, generated in `course.html` |
 | Gamification (badges, points, levels, progress, scenarios…) | §8 |

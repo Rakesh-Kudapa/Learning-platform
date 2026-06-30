@@ -240,6 +240,62 @@ def create_app():
         return jsonify({"answer": answer})
 
     # ------------------------------------------------------------
+    #  Final test & certificate  (feat/final-test-certificate)
+    # ------------------------------------------------------------
+    @app.route("/api/test", methods=["GET"])
+    @login_required
+    def api_test():
+        from course_data import TEST_QUESTIONS
+        return jsonify([
+            {"id": i, "q": q["q"], "options": q["options"]}
+            for i, q in enumerate(TEST_QUESTIONS)
+        ])
+
+    @app.route("/api/test/submit", methods=["POST"])
+    @login_required
+    def api_test_submit():
+        from course_data import TEST_QUESTIONS, PASS_MARK
+        payload = request.get_json(silent=True) or {}
+        answers = payload.get("answers") or {}
+        if not isinstance(answers, dict):
+            return jsonify({"error": "answers must be an object of {questionId: optionIndex}"}), 400
+
+        total = len(TEST_QUESTIONS)
+        score = 0
+        for i, q in enumerate(TEST_QUESTIONS):
+            given = answers.get(str(i))
+            if isinstance(given, int) and given == q["answer"]:
+                score += 1
+
+        passed = (score / total) >= PASS_MARK if total else False
+
+        db.session.add(TestResult(
+            user_id=current_user.id, score=score, total=total, passed=passed,
+        ))
+        db.session.commit()
+
+        return jsonify({"score": score, "total": total, "passed": passed,
+                        "pass_mark": PASS_MARK})
+
+    @app.route("/api/test/results", methods=["GET"])
+    @login_required
+    def api_test_results():
+        from course_data import PASS_MARK
+        rows = (TestResult.query.filter_by(user_id=current_user.id)
+                .order_by(TestResult.created_at.desc()).all())
+        best = max(rows, key=lambda r: r.score, default=None)
+        return jsonify({
+            "attempts": [
+                {"score": r.score, "total": r.total, "passed": r.passed,
+                 "at": r.created_at.isoformat()}
+                for r in rows
+            ],
+            "best": ({"score": best.score, "total": best.total, "passed": best.passed,
+                     "at": best.created_at.isoformat()} if best else None),
+            "pass_mark": PASS_MARK,
+        })
+
+    # ------------------------------------------------------------
     #  Admin dashboard
     # ------------------------------------------------------------
     ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "").strip().lower()
