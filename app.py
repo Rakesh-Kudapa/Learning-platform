@@ -57,12 +57,16 @@ def create_app():
 
     # --- mode ---
     APP_MODE = os.getenv("APP_MODE", "full").strip().lower()
+    ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "").strip().lower()
+
+    def is_admin_user():
+        return current_user.is_authenticated and current_user.email.lower() == ADMIN_EMAIL
 
     # --- routes ---
     @app.route("/")
     def index():
         if current_user.is_authenticated:
-            if APP_MODE == "admin":
+            if APP_MODE == "admin" and not is_admin_user():
                 return redirect(url_for("admin_dashboard"))
             return redirect(url_for("course"))
         return redirect(url_for("auth.login"))
@@ -70,7 +74,10 @@ def create_app():
     @app.route("/course")
     @login_required
     def course():
-        if APP_MODE == "admin":
+        # The admin account always has full access to the learning tool,
+        # on either deployment. Only non-admins get redirected on the
+        # admin-only deployment.
+        if APP_MODE == "admin" and not is_admin_user():
             return redirect(url_for("admin_dashboard"))
         return send_from_directory(
             os.path.join(app.root_path, "templates"), "course.html")
@@ -78,7 +85,11 @@ def create_app():
     @app.route("/api/me")
     @login_required
     def api_me():
-        return jsonify({"name": current_user.name, "email": current_user.email})
+        return jsonify({
+            "name": current_user.name,
+            "email": current_user.email,
+            "is_admin": is_admin_user(),
+        })
 
     # ------------------------------------------------------------
     #  Pre/post knowledge self-assessment  (feat/pre-post-feedback-knowledge)
@@ -296,17 +307,15 @@ def create_app():
         })
 
     # ------------------------------------------------------------
-    #  Admin dashboard
+    #  Admin dashboard — rakeshkudapa01@gmail.com (ADMIN_EMAIL) has full,
+    #  unrestricted access to both the admin portal and the learning tool,
+    #  on every deployment, regardless of APP_MODE.
     # ------------------------------------------------------------
-    ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "").strip().lower()
-
     def admin_required(f):
         @wraps(f)
         @login_required
         def decorated(*args, **kwargs):
-            if APP_MODE == "user":
-                return redirect(url_for("course"))
-            if current_user.email.lower() != ADMIN_EMAIL:
+            if not is_admin_user():
                 if APP_MODE == "admin":
                     return redirect(url_for("auth.login"))
                 return redirect(url_for("course"))
@@ -317,6 +326,22 @@ def create_app():
     @admin_required
     def admin_dashboard():
         return render_template("admin.html")
+
+    @app.route("/api/admin/answer-key")
+    @admin_required
+    def api_admin_answer_key():
+        from course_data import MODULE_QUIZZES, MODULE_TITLES, TEST_QUESTIONS
+        modules = []
+        for i, title in enumerate(MODULE_TITLES):
+            modules.append({
+                "id": i,
+                "title": title,
+                "questions": MODULE_QUIZZES.get(i, []),
+            })
+        return jsonify({
+            "modules": modules,
+            "final_exam": TEST_QUESTIONS,
+        })
 
     @app.route("/api/admin/reset", methods=["POST"])
     @admin_required

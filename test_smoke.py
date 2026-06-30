@@ -116,12 +116,43 @@ def smoke():
         check("stats has doubts_per_module", "doubts_per_module" in stats)
         check("stats has test_pass_fail", "test_pass_fail" in stats)
 
-    # Verify non-admin can't access
+        r = c2.get("/api/admin/answer-key")
+        check("GET /api/admin/answer-key returns 200", r.status_code == 200)
+        key = r.get_json()
+        check("answer-key has modules list", isinstance(key.get("modules"), list) and len(key["modules"]) == 12)
+        check("answer-key modules carry full answer+explain", all(
+            ("answer" in qq and "explain" in qq) for m in key["modules"] for qq in m["questions"]
+        ))
+        check("answer-key Module 12 (References) has zero questions", key["modules"][11]["questions"] == [])
+        check("answer-key has final_exam with answers exposed (admin-only)", all("answer" in q for q in key["final_exam"]))
+        check("answer-key final_exam matches TEST_QUESTIONS length", len(key["final_exam"]) == len(TEST_QUESTIONS))
+
+        r = c2.get("/api/me")
+        check("GET /api/me reports is_admin true for the admin account", r.get_json().get("is_admin") is True)
+
+        r = c2.get("/course")
+        check("Admin can still access /course (universal access)", r.status_code == 200)
+
+    # Verify non-admin can't access admin routes or the answer key
     with app2.test_client() as c3:
         other_email = f"other{int(time.time()*1000)}@test.local"
         c3.post("/register", data={"name": "Other", "email": other_email, "password": "test1234"}, follow_redirects=True)
         r = c3.get("/admin", follow_redirects=False)
         check("GET /admin redirects non-admin user", r.status_code == 302)
+        r = c3.get("/api/admin/answer-key", follow_redirects=False)
+        check("GET /api/admin/answer-key redirects non-admin user", r.status_code == 302)
+        r = c3.get("/api/me")
+        check("GET /api/me reports is_admin false for a regular user", r.get_json().get("is_admin") is False)
+
+    # Verify admin has full access even when APP_MODE=user (universal access)
+    os.environ["APP_MODE"] = "user"
+    app3 = create_app()
+    app3.config["TESTING"] = True
+    with app3.test_client() as c4:
+        c4.post("/login", data={"email": email, "password": "test1234"}, follow_redirects=True)
+        r = c4.get("/admin", follow_redirects=False)
+        check("Admin reaches /admin even when APP_MODE=user", r.status_code == 200)
+    del os.environ["APP_MODE"]
 
     check("MODULE_TITLES has 12 entries", len(MODULE_TITLES) == 12)
     check("MODULE_TITLES[2] is End-to-End Process", MODULE_TITLES[2] == "End-to-End Process")

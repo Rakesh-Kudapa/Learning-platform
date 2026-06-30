@@ -20,6 +20,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--i
 .topbar .brand{font-family:'Space Grotesk';font-weight:700;font-size:20px;letter-spacing:-.02em}
 .topbar .brand span{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .topbar .tag{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:var(--violet);color:#fff;padding:3px 10px;border-radius:6px}
+.topbar .identity{font-size:12.5px;color:var(--ink-soft);font-weight:500}
+.topbar .identity b{color:var(--ink);font-weight:700}
+.topbar .identity .id-badge{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:linear-gradient(135deg,#11B5C4,#6C5CE7,#E84F9C);color:#fff;padding:2px 8px;border-radius:5px;margin-left:6px}
 .topbar .spacer{flex:1}
 .topbar a{font-size:13px;color:var(--violet);text-decoration:none;font-weight:600}
 .topbar a:hover{text-decoration:underline}
@@ -97,6 +100,24 @@ tr:hover td{background:#F4F7FB}
 .shift-card .val.down{color:var(--warn)}
 .shift-card .desc{font-size:11.5px;color:var(--ink-soft);font-weight:500;margin-top:2px}
 
+/* answer key */
+.key-mod{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:14px;box-shadow:0 4px 16px rgba(19,27,46,.05);overflow:hidden}
+.key-mod summary{padding:16px 20px;cursor:pointer;font-family:'Space Grotesk';font-weight:600;font-size:15px;list-style:none;display:flex;align-items:center;gap:10px}
+.key-mod summary::-webkit-details-marker{display:none}
+.key-mod summary::before{content:'\25B8';color:var(--violet);font-size:13px;transition:transform .15s}
+.key-mod[open] summary::before{transform:rotate(90deg)}
+.key-mod summary .km-count{margin-left:auto;font-size:11.5px;color:var(--ink-soft);font-weight:500;background:var(--surface-2);padding:3px 10px;border-radius:6px}
+.key-mod .km-body{padding:0 20px 18px}
+.key-q{border-top:1px solid var(--line-soft);padding:16px 0}
+.key-q:first-child{border-top:none;padding-top:4px}
+.key-q .kq-text{font-weight:600;font-size:14.5px;margin-bottom:10px}
+.key-opt{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13.5px;margin-bottom:4px;color:var(--ink-soft)}
+.key-opt.correct{background:rgba(21,181,126,.1);color:#0c7a52;font-weight:600}
+.key-opt .ko-letter{flex:none;width:20px;height:20px;border-radius:5px;background:var(--surface-2);display:grid;place-items:center;font-size:10.5px;font-family:'IBM Plex Mono';font-weight:700;color:var(--ink-soft)}
+.key-opt.correct .ko-letter{background:var(--success);color:#fff}
+.key-explain{font-size:12.5px;color:var(--ink-soft);font-style:italic;margin-top:6px;padding-left:2px}
+.key-mod.final{border-color:var(--violet);border-width:2px}
+
 @media(max-width:700px){
   .chart-grid{grid-template-columns:1fr}
   .stats-row{grid-template-columns:repeat(2,1fr)}
@@ -110,6 +131,7 @@ tr:hover td{background:#F4F7FB}
 <div class="topbar">
   <div class="brand">excel<span>ra</span></div>
   <div class="tag">Admin Dashboard</div>
+  <div class="identity" id="adminIdentity"></div>
   <div class="spacer"></div>
   <a href="/course">Back to Course</a>
   <a href="#" onclick="resetAllData()" style="color:var(--warn)">Reset All Data</a>
@@ -120,6 +142,7 @@ tr:hover td{background:#F4F7FB}
   <div class="tab active" data-tab="overview">Overview</div>
   <div class="tab" data-tab="users">User Database</div>
   <div class="tab" data-tab="analytics">Deep Analytics</div>
+  <div class="tab" data-tab="answerkey">Answer Key</div>
 </div>
 
 <div id="loading" class="loading">
@@ -225,6 +248,22 @@ tr:hover td{background:#F4F7FB}
 </div>
 </div>
 
+<!-- ==================== TAB 4: ANSWER KEY ==================== -->
+<div class="tab-panel" id="panel-answerkey">
+<div class="container">
+  <div class="table-card" style="margin-bottom:20px">
+    <h3 style="margin-bottom:6px">Complete Answer Key</h3>
+    <p class="muted" style="margin-bottom:0">Every module knowledge-check question and the whole-course final exam, with correct answers and explanations. Admin-only — never exposed to learners.</p>
+  </div>
+  <div class="toolbar" style="margin-bottom:18px">
+    <input type="text" id="keySearch" placeholder="Search questions...">
+    <button class="btn-sm" onclick="document.querySelectorAll('.key-mod').forEach(d=>d.open=true)">Expand all</button>
+    <button class="btn-sm" onclick="document.querySelectorAll('.key-mod').forEach(d=>d.open=false)">Collapse all</button>
+  </div>
+  <div id="answerKeyBody"></div>
+</div>
+</div>
+
 </div><!-- /app -->
 
 <script>
@@ -259,8 +298,75 @@ async function loadDashboard() {
   renderOverview();
   renderUserDB();
   renderAnalytics();
+  loadIdentity();
+  loadAnswerKey();
   document.getElementById('loading').style.display = 'none';
   document.getElementById('app').style.display = 'block';
+}
+
+// ============ ADMIN IDENTITY ============
+async function loadIdentity() {
+  try {
+    const r = await fetch('/api/me');
+    if (!r.ok) return;
+    const me = await r.json();
+    document.getElementById('adminIdentity').innerHTML =
+      `<b>${esc(me.name || '')}</b> &middot; ${esc(me.email)}${me.is_admin ? ' <span class="id-badge">Admin &middot; Full Access</span>' : ''}`;
+  } catch (e) { /* non-fatal */ }
+}
+
+// ============ ANSWER KEY ============
+let ANSWER_KEY = null;
+
+async function loadAnswerKey() {
+  try {
+    const r = await fetch('/api/admin/answer-key');
+    if (!r.ok) return;
+    ANSWER_KEY = await r.json();
+    renderAnswerKey();
+    document.getElementById('keySearch').addEventListener('input', renderAnswerKey);
+  } catch (e) {
+    document.getElementById('answerKeyBody').innerHTML = '<p class="muted">Could not load the answer key.</p>';
+  }
+}
+
+function renderAnswerKey() {
+  if (!ANSWER_KEY) return;
+  const q = document.getElementById('keySearch').value.toLowerCase();
+  const letters = ['A', 'B', 'C', 'D'];
+
+  function questionHTML(item) {
+    if (q && !item.q.toLowerCase().includes(q)) return '';
+    return `<div class="key-q">
+      <div class="kq-text">${esc(item.q)}</div>
+      ${item.options.map((o, i) => `
+        <div class="key-opt ${i === item.answer ? 'correct' : ''}">
+          <span class="ko-letter">${letters[i]}</span><span>${esc(o)}</span>
+        </div>`).join('')}
+      ${item.explain ? `<div class="key-explain">${esc(item.explain)}</div>` : ''}
+    </div>`;
+  }
+
+  let html = '';
+  ANSWER_KEY.modules.forEach(m => {
+    if (!m.questions.length) return;
+    const qsHtml = m.questions.map(questionHTML).filter(Boolean).join('');
+    if (!qsHtml) return;
+    html += `<details class="key-mod" open>
+      <summary>Module ${String(m.id + 1).padStart(2, '0')} — ${esc(m.title)} <span class="km-count">${m.questions.length} question${m.questions.length > 1 ? 's' : ''}</span></summary>
+      <div class="km-body">${qsHtml}</div>
+    </details>`;
+  });
+
+  const examHtml = ANSWER_KEY.final_exam.map(questionHTML).filter(Boolean).join('');
+  if (examHtml) {
+    html += `<details class="key-mod final" open>
+      <summary>\u{1F393} Final Exam <span class="km-count">${ANSWER_KEY.final_exam.length} questions · ${Math.round((ANSWER_KEY.final_exam.length ? 0.75 : 0) * 100)}% to pass</span></summary>
+      <div class="km-body">${examHtml}</div>
+    </details>`;
+  }
+
+  document.getElementById('answerKeyBody').innerHTML = html || '<p class="muted">No questions match your search.</p>';
 }
 
 // ============ OVERVIEW ============
