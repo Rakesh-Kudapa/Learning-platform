@@ -103,6 +103,33 @@ def create_app():
         })
 
     # ------------------------------------------------------------
+    #  Course progress sync — lets the admin see real per-module
+    #  performance (xp, done modules, knowledge-check results, badges).
+    #  Write-mostly: the browser is still the source of truth for the
+    #  learner's own session; this is a mirror for reporting.
+    # ------------------------------------------------------------
+    MAX_PROGRESS_BYTES = 50_000
+
+    @app.route("/api/progress", methods=["POST"])
+    @login_required
+    def api_progress_save():
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict):
+            return jsonify({"error": "Body must be a JSON object"}), 400
+        blob = json.dumps(payload)
+        if len(blob) > MAX_PROGRESS_BYTES:
+            return jsonify({"error": "Progress payload too large"}), 400
+
+        row = Progress.query.filter_by(user_id=current_user.id).first()
+        if not row:
+            row = Progress(user_id=current_user.id, data=blob)
+            db.session.add(row)
+        else:
+            row.data = blob
+        db.session.commit()
+        return jsonify({"ok": True})
+
+    # ------------------------------------------------------------
     #  Pre/post knowledge self-assessment  (feat/pre-post-feedback-knowledge)
     # ------------------------------------------------------------
     @app.route("/api/assessment", methods=["GET", "POST"])
@@ -463,6 +490,127 @@ def create_app():
         ModuleUnlock.query.filter_by(user_id=user.id).delete()
         db.session.commit()
         return jsonify({"ok": True})
+
+    # ------------------------------------------------------------
+    #  Per-user admin actions — edit, delete, performance report
+    # ------------------------------------------------------------
+    def _module_scores(user_id):
+        """Per-module knowledge-check scores from the synced Progress blob."""
+        from course_data import MODULE_TITLES
+        row = Progress.query.filter_by(user_id=user_id).first()
+        if not row:
+            return None
+        try:
+            blob = json.loads(row.data or "{}")
+        except (TypeError, ValueError):
+            return None
+        checks = blob.get("checks") or {}
+        done = blob.get("done") or {}
+        out = []
+        for i, title in enumerate(MODULE_TITLES):
+            results = checks.get(str(i))
+            if not isinstance(results, list):
+                out.append({"module": title, "id": i, "attempted": False})
+                continue
+            # getChecks() in course.html pre-fills unanswered questions with
+            # null as a side effect of gate-checking, so an all-null array
+            # means the module was never actually attempted.
+            answered = sum(1 for r in results if r is not None)
+            correct = sum(1 for r in results if r is True)
+            total = len(results)
+            out.append({
+                "module": title, "id": i, "attempted": answered > 0,
+                "correct": correct, "total": total,
+                "done": bool(done.get(str(i))),
+            })
+        return {"xp": blob.get("xp", 0), "badges": blob.get("badges", []), "modules": out}
+
+    @app.route("/api/admin/users/<int:user_id>/report")
+    @admin_required
+    def api_admin_user_report(user_id):
+        user = db.session.get(User, user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        ratings = (KnowledgeRating.query.filter_by(user_id=user_id)
+                   .order_by(KnowledgeRating.created_at).all())
+        tests = (TestResult.query.filter_by(user_id=user_id)
+                 .order_by(TestResult.created_at.desc()).all())
+        doubts = (Doubt.query.filter_by(user_id=user_id)
+                  .order_by(Doubt.created_at.desc()).all())
+        contributions = (Contribution.query.filter_by(user_id=user_id)
+                          .order_by(Contribution.created_at.desc()).all())
+        feedback = (Feedback.query.filter_by(user_id=user_id)
+                    .order_by(Feedback.created_at.desc()).all())
+
+        from course_data import MODULE_TITLES
+        return jsonify({
+            "user": {"id": user.id, "name": user.name, "email": user.email,
+                     "joined": user.created_at.strftime("%Y-%m-%d %H:%M")},
+            "knowledge_ratings": [{"stage": r.stage, "level": r.level,
+                                   "at": r.created_at.strftime("%Y-%m-%d %H:%M")} for r in ratings],
+            "progress": _module_scores(user_id),
+            "test_attempts": [{"score": t.score, "total": t.total, "passed": t.passed,
+                               "at": t.created_at.strftime("%Y-%m-%d %H:%M")} for t in tests],
+            "doubts": [{"module": MODULE_TITLES[d.module_id] if d.module_id < len(MODULE_TITLES) else str(d.module_id),
+                       "question": d.question, "answer": d.answer,
+                       "at": d.created_at.strftime("%Y-%m-%d %H:%M")} for d in doubts],
+            "contributions": [{"title": c.title, "content": c.content,
+                               "at": c.created_at.strftime("%Y-%m-%d %H:%M")} for c in contributions],
+            "feedback": [{"rating": f.rating, "experience": f.experience, "suggestions": f.suggestions,
+                         "at": f.created_at.strftime("%Y-%m-%d %H:%M")} for f in feedback],
+        })
+
+    @app.route("/api/admin/users/<int:user_id>", methods=["PATCH"])
+    @admin_required
+    def api_admin_user_edit(user_id):
+        user = db.session.get(User, user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        payload = request.get_json(silent=True) or {}
+        name = (payload.get("name") or "").strip()
+        email = (payload.get("email") or "").strip().lower()
+        if not name or not email or "@" not in email:
+            return jsonify({"error": "A valid name and email are required"}), 400
+        existing = User.query.filter(User.email == email, User.id != user_id).first()
+        if existing:
+            return jsonify({"error": "Another user already has that email"}), 400
+        user.name = name
+        user.email = email
+        db.session.commit()
+        return jsonify({"ok": True})
+
+    @app.route("/api/admin/users/<int:user_id>", methods=["DELETE"])
+    @admin_required
+    def api_admin_user_delete(user_id):
+        user = db.session.get(User, user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        if user.email.lower() == ADMIN_EMAIL:
+            return jsonify({"error": "The primary admin account can't be deleted"}), 400
+        if user.id == current_user.id:
+            return jsonify({"error": "You can't delete your own account while logged in"}), 400
+        db.session.delete(user)  # cascades to progress/ratings/doubts/results/feedback/contributions/unlocks
+        db.session.commit()
+        return jsonify({"ok": True})
+
+    @app.route("/api/admin/users/bulk-delete", methods=["POST"])
+    @admin_required
+    def api_admin_users_bulk_delete():
+        payload = request.get_json(silent=True) or {}
+        ids = payload.get("user_ids") or []
+        if not isinstance(ids, list):
+            return jsonify({"error": "user_ids must be a list"}), 400
+        deleted, skipped = 0, 0
+        for uid in ids:
+            user = db.session.get(User, uid)
+            if not user or user.email.lower() == ADMIN_EMAIL or user.id == current_user.id:
+                skipped += 1
+                continue
+            db.session.delete(user)
+            deleted += 1
+        db.session.commit()
+        return jsonify({"ok": True, "deleted": deleted, "skipped": skipped})
 
     @app.route("/api/admin/answer-key")
     @admin_required

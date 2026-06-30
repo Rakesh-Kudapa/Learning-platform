@@ -140,6 +140,18 @@ tr:hover td{background:#F4F7FB}
 .admin-row .ar-meta{font-size:11.5px;color:var(--ink-soft);margin-top:2px}
 .admin-row .ar-badge{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:var(--grad);color:#fff;padding:3px 9px;border-radius:6px}
 
+/* performance report modal */
+.report-section{margin-top:18px}
+.report-section h4{font-family:'Space Grotesk';font-size:13.5px;margin-bottom:8px;color:var(--ink)}
+.report-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
+.report-row:last-child{border-bottom:none}
+.report-empty{font-size:12.5px;color:var(--ink-faint);font-style:italic}
+.report-qa{padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:12.5px}
+.report-qa:last-child{border-bottom:none}
+.report-qa .rq-q{font-weight:600;color:var(--ink)}
+.report-qa .rq-a{color:var(--ink-soft);margin-top:3px}
+.report-qa .rq-meta{color:var(--ink-faint);font-size:11px;margin-top:3px}
+
 @media(max-width:700px){
   .chart-grid{grid-template-columns:1fr}
   .stats-row{grid-template-columns:repeat(2,1fr)}
@@ -214,12 +226,14 @@ tr:hover td{background:#F4F7FB}
       <select id="filterFeedback"><option value="">Feedback: All</option><option value="5">5 Stars</option><option value="4">4 Stars</option><option value="3">3 Stars</option><option value="2">2 Stars</option><option value="1">1 Star</option><option value="none">No Feedback</option></select>
       <button class="btn-sm" onclick="resetFilters()">Reset</button>
       <button class="btn-primary" onclick="exportCSV()">Export CSV</button>
+      <button class="btn-sm" id="bulkDeleteBtn" style="display:none;color:var(--warn);border-color:var(--warn)" onclick="bulkDeleteUsers()">Delete Selected</button>
       <span class="count-label" id="rowCount"></span>
     </div>
     <div class="table-wrap">
     <table>
       <thead>
         <tr>
+          <th><input type="checkbox" id="selectAllUsers" onchange="toggleSelectAll(this.checked)"></th>
           <th data-col="idx"># <span class="sort-icon">&#9650;</span></th>
           <th data-col="name">Name <span class="sort-icon">&#9650;</span></th>
           <th data-col="email">Email <span class="sort-icon">&#9650;</span></th>
@@ -231,6 +245,8 @@ tr:hover td{background:#F4F7FB}
           <th data-col="best_test_score">Best Test <span class="sort-icon">&#9650;</span></th>
           <th data-col="feedback_rating">Feedback <span class="sort-icon">&#9650;</span></th>
           <th>Module Access</th>
+          <th>Performance</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody id="dbBody"></tbody>
@@ -311,6 +327,40 @@ tr:hover td{background:#F4F7FB}
     <div class="modal-actions">
       <button class="btn-sm" onclick="bulkModuleAccess(true)">Unlock all</button>
       <button class="btn-sm" onclick="bulkModuleAccess(false)">Lock all (reset to normal)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit user modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeEditUser()">&times;</button>
+    <h3>Edit User</h3>
+    <div class="modal-sub">Update this learner's name or email.</div>
+    <div class="s-field" style="margin-bottom:14px">
+      <label style="display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">Name</label>
+      <input type="text" id="editName" style="width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px">
+    </div>
+    <div class="s-field" style="margin-bottom:6px">
+      <label style="display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">Email</label>
+      <input type="email" id="editEmail" style="width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px">
+    </div>
+    <p class="muted" id="editMsg" style="margin-top:8px"></p>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveEditUser()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Performance report modal -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal-box" style="max-width:640px">
+    <button class="modal-close" onclick="closePerformanceReport()">&times;</button>
+    <h3 id="reportTitle">Performance Report</h3>
+    <div class="modal-sub">Everything recorded for this learner — module scores, final exam attempts, doubts, contributions, and feedback.</div>
+    <div id="reportBody"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="downloadPerformanceReport()">⬇ Download Report (CSV)</button>
     </div>
   </div>
 </div>
@@ -512,14 +562,18 @@ function getFiltered() {
   return rows;
 }
 
+let selectedUserIds = new Set();
+
 function renderUserDB() {
   const rows = getFiltered();
   const tbody = document.getElementById('dbBody');
   document.getElementById('rowCount').textContent = rows.length + ' of ' + DATA.users.length + ' users';
-  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--ink-soft);padding:28px">No users match filters</td></tr>'; return; }
+  updateBulkDeleteBtn();
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;color:var(--ink-soft);padding:28px">No users match filters</td></tr>'; return; }
   tbody.innerHTML = rows.map((u, i) => `<tr>
+    <td><input type="checkbox" class="userCheck" data-id="${u.id}" ${selectedUserIds.has(u.id)?'checked':''} onchange="toggleUserSelect(${u.id}, this.checked)" ${u.is_admin?'disabled title="Admin accounts can\'t be bulk-deleted"':''}></td>
     <td>${i+1}</td>
-    <td><strong>${esc(u.name)}</strong></td>
+    <td><strong>${esc(u.name)}</strong>${u.is_admin?' <span class="badge pass" style="font-size:9.5px">ADMIN</span>':''}</td>
     <td>${esc(u.email)}</td>
     <td>${u.joined}</td>
     <td>${levelBadge(u.pre_level)}</td>
@@ -531,6 +585,11 @@ function renderUserDB() {
     <td>
       <span class="badge ${u.unlocked_modules.length ? 'pass' : 'none'}">${u.unlocked_modules.length} unlocked</span>
       <button class="btn-sm" style="padding:5px 10px;font-size:11.5px;margin-left:6px" onclick="openModuleManager(${u.id})">Manage</button>
+    </td>
+    <td><button class="btn-sm" style="padding:5px 10px;font-size:11.5px" onclick="openPerformanceReport(${u.id})">View Report</button></td>
+    <td style="white-space:nowrap">
+      <button class="btn-sm" style="padding:5px 10px;font-size:11.5px" onclick="openEditUser(${u.id})">Edit</button>
+      <button class="btn-sm" style="padding:5px 10px;font-size:11.5px;color:var(--warn);border-color:var(--warn)" onclick="deleteUser(${u.id})" ${u.is_admin?'disabled':''}>Delete</button>
     </td>
   </tr>`).join('');
 
@@ -798,6 +857,188 @@ async function bulkModuleAccess(unlockAll) {
       renderUserDB();
     }
   }
+}
+
+// ============ CHECKBOXES + BULK DELETE ============
+function toggleSelectAll(checked) {
+  const visibleIds = getFiltered().map(u => u.id);
+  if (checked) visibleIds.forEach(id => { const u = DATA.users.find(x=>x.id===id); if (u && !u.is_admin) selectedUserIds.add(id); });
+  else visibleIds.forEach(id => selectedUserIds.delete(id));
+  renderUserDB();
+}
+
+function toggleUserSelect(id, checked) {
+  if (checked) selectedUserIds.add(id); else selectedUserIds.delete(id);
+  updateBulkDeleteBtn();
+}
+
+function updateBulkDeleteBtn() {
+  const btn = document.getElementById('bulkDeleteBtn');
+  btn.style.display = selectedUserIds.size > 0 ? 'inline-block' : 'none';
+  btn.textContent = `Delete Selected (${selectedUserIds.size})`;
+}
+
+async function bulkDeleteUsers() {
+  const ids = Array.from(selectedUserIds);
+  if (!ids.length) return;
+  if (!confirm(`Permanently delete ${ids.length} user(s) and all their data? This cannot be undone.`)) return;
+  const r = await fetch('/api/admin/users/bulk-delete', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({user_ids: ids})});
+  if (r.ok) {
+    const data = await r.json();
+    selectedUserIds.clear();
+    DATA.users = DATA.users.filter(u => !ids.includes(u.id));
+    DATA.total_users = DATA.users.length;
+    renderUserDB();
+    alert(`Deleted ${data.deleted} user(s).${data.skipped ? ' ' + data.skipped + ' skipped (admin accounts can\'t be deleted here).' : ''}`);
+  } else { alert('Could not delete the selected users.'); }
+}
+
+// ============ EDIT USER ============
+let EDIT_USER_ID = null;
+
+function openEditUser(userId) {
+  const u = DATA.users.find(x => x.id === userId);
+  if (!u) return;
+  EDIT_USER_ID = userId;
+  document.getElementById('editName').value = u.name;
+  document.getElementById('editEmail').value = u.email;
+  document.getElementById('editMsg').textContent = '';
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeEditUser() {
+  document.getElementById('editModal').classList.remove('open');
+  EDIT_USER_ID = null;
+}
+
+async function saveEditUser() {
+  const name = document.getElementById('editName').value.trim();
+  const emailVal = document.getElementById('editEmail').value.trim();
+  const msg = document.getElementById('editMsg');
+  const r = await fetch(`/api/admin/users/${EDIT_USER_ID}`, {method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name, email: emailVal})});
+  const data = await r.json();
+  if (r.ok) {
+    const u = DATA.users.find(x => x.id === EDIT_USER_ID);
+    if (u) { u.name = name; u.email = emailVal; renderUserDB(); }
+    closeEditUser();
+  } else { msg.textContent = data.error || 'Could not save changes.'; }
+}
+
+// ============ DELETE SINGLE USER ============
+async function deleteUser(userId) {
+  const u = DATA.users.find(x => x.id === userId);
+  if (!u) return;
+  if (!confirm(`Permanently delete ${u.name} (${u.email}) and all their data? This cannot be undone.`)) return;
+  const r = await fetch(`/api/admin/users/${userId}`, {method:'DELETE'});
+  if (r.ok) {
+    DATA.users = DATA.users.filter(x => x.id !== userId);
+    DATA.total_users = DATA.users.length;
+    selectedUserIds.delete(userId);
+    renderUserDB();
+  } else { const data = await r.json(); alert(data.error || 'Could not delete user.'); }
+}
+
+// ============ PERFORMANCE REPORT ============
+let REPORT_DATA = null;
+
+async function openPerformanceReport(userId) {
+  const u = DATA.users.find(x => x.id === userId);
+  if (!u) return;
+  document.getElementById('reportTitle').textContent = `Performance Report — ${u.name}`;
+  document.getElementById('reportBody').innerHTML = '<p class="muted">Loading…</p>';
+  document.getElementById('reportModal').classList.add('open');
+  try {
+    const r = await fetch(`/api/admin/users/${userId}/report`);
+    REPORT_DATA = await r.json();
+    renderPerformanceReport();
+  } catch (e) {
+    document.getElementById('reportBody').innerHTML = '<p class="muted">Could not load report.</p>';
+  }
+}
+
+function closePerformanceReport() {
+  document.getElementById('reportModal').classList.remove('open');
+  REPORT_DATA = null;
+}
+
+function renderPerformanceReport() {
+  const d = REPORT_DATA;
+  if (!d) return;
+  const pre = d.knowledge_ratings.find(r => r.stage === 'pre');
+  const post = d.knowledge_ratings.find(r => r.stage === 'post');
+
+  let modulesHtml = '<p class="report-empty">No module activity synced yet — this learner hasn\'t answered any knowledge checks since this feature was added.</p>';
+  if (d.progress && d.progress.modules) {
+    modulesHtml = d.progress.modules.map(m => {
+      if (!m.attempted) return `<div class="report-row"><span>${esc(m.module)}</span><span class="muted">Not attempted</span></div>`;
+      const pct = m.total ? Math.round(m.correct / m.total * 100) : 0;
+      return `<div class="report-row"><span>${esc(m.module)}</span><span>${m.correct}/${m.total} (${pct}%)${m.done ? ' <span class="badge pass">DONE</span>' : ''}</span></div>`;
+    }).join('');
+  }
+
+  const examHtml = d.test_attempts.length
+    ? d.test_attempts.map(t => `<div class="report-row"><span>${t.at}</span><span>${t.score}/${t.total} ${t.passed ? '<span class="badge pass">PASS</span>' : '<span class="badge fail">FAIL</span>'}</span></div>`).join('')
+    : '<p class="report-empty">No final exam attempts yet.</p>';
+
+  const doubtsHtml = d.doubts.length
+    ? d.doubts.map(x => `<div class="report-qa"><div class="rq-q">Q: ${esc(x.question)}</div><div class="rq-a">${esc((x.answer||'').slice(0,200))}${(x.answer||'').length>200?'…':''}</div><div class="rq-meta">${esc(x.module)} &middot; ${x.at}</div></div>`).join('')
+    : '<p class="report-empty">No doubts asked yet.</p>';
+
+  const contribHtml = d.contributions.length
+    ? d.contributions.map(c => `<div class="report-row"><span>${esc(c.title)}</span><span class="muted">${c.at}</span></div>`).join('')
+    : '<p class="report-empty">No contributions yet.</p>';
+
+  const feedbackHtml = d.feedback.length
+    ? d.feedback.map(f => `<div class="report-row"><span>${'★'.repeat(f.rating||0)}<span style="color:var(--line)">${'★'.repeat(5-(f.rating||0))}</span></span><span class="muted">${f.at}</span></div>`).join('')
+    : '<p class="report-empty">No feedback submitted yet.</p>';
+
+  document.getElementById('reportBody').innerHTML = `
+    <div class="report-section">
+      <h4>Knowledge Level</h4>
+      <div class="report-row"><span>Pre-course</span><span>${pre ? levelBadge(pre.level) : '<span class="muted">Not set</span>'}</span></div>
+      <div class="report-row"><span>Post-course</span><span>${post ? levelBadge(post.level) : '<span class="muted">Not set</span>'}</span></div>
+    </div>
+    <div class="report-section">
+      <h4>Module-by-Module Scores ${d.progress ? `&middot; ${d.progress.xp} XP &middot; ${d.progress.badges.length} badges` : ''}</h4>
+      ${modulesHtml}
+    </div>
+    <div class="report-section"><h4>Final Exam Attempts</h4>${examHtml}</div>
+    <div class="report-section"><h4>Doubts Asked (${d.doubts.length})</h4>${doubtsHtml}</div>
+    <div class="report-section"><h4>Contributions (${d.contributions.length})</h4>${contribHtml}</div>
+    <div class="report-section"><h4>Feedback</h4>${feedbackHtml}</div>
+  `;
+}
+
+function downloadPerformanceReport() {
+  const d = REPORT_DATA;
+  if (!d) return;
+  const lines = [];
+  lines.push(`Performance Report — ${d.user.name} (${d.user.email})`);
+  lines.push(`Joined: ${d.user.joined}`);
+  lines.push('');
+  lines.push('Section,Detail,Result');
+  const pre = d.knowledge_ratings.find(r => r.stage === 'pre');
+  const post = d.knowledge_ratings.find(r => r.stage === 'post');
+  lines.push(`Knowledge Level,Pre-course,${pre ? pre.level : 'Not set'}`);
+  lines.push(`Knowledge Level,Post-course,${post ? post.level : 'Not set'}`);
+  if (d.progress && d.progress.modules) {
+    d.progress.modules.forEach(m => {
+      const result = m.attempted ? `${m.correct}/${m.total}${m.done ? ' (done)' : ''}` : 'Not attempted';
+      lines.push(`Module Score,"${m.module.replace(/"/g,'""')}",${result}`);
+    });
+  }
+  d.test_attempts.forEach(t => lines.push(`Final Exam,${t.at},${t.score}/${t.total} ${t.passed ? 'PASS' : 'FAIL'}`));
+  d.doubts.forEach(x => lines.push(`Doubt,"${x.question.replace(/"/g,'""')}","${(x.answer||'').replace(/"/g,'""')}"`));
+  d.contributions.forEach(c => lines.push(`Contribution,"${c.title.replace(/"/g,'""')}",${c.at}`));
+  d.feedback.forEach(f => lines.push(`Feedback,${f.at},${f.rating}/5`));
+
+  const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `performance_${d.user.email.replace(/[^a-z0-9]/gi,'_')}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
 }
 
 async function resetAllData() {

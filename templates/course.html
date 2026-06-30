@@ -434,7 +434,16 @@ const store={
   save(o){ try{localStorage.setItem(SAVE_KEY,JSON.stringify(o));}catch(e){mem[SAVE_KEY]=o;} }
 };
 let state = store.load() || { name:'', xp:0, done:{}, checks:{}, badges:[], current:0, preLevel:null, postLevel:null, examResult:null };
-function persist(){ store.save(state); }
+function persist(){ store.save(state); syncProgress(); }
+
+let _syncTimer=null;
+function syncProgress(){
+  clearTimeout(_syncTimer);
+  _syncTimer=setTimeout(()=>{
+    const blob={xp:state.xp,done:state.done,checks:state.checks,badges:state.badges,current:state.current};
+    fetch('/api/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(blob)}).catch(()=>{});
+  },900);
+}
 
 /* ============================================================
    COURSE DATA  (Modules 1-2 authored; 3-12 stubbed/locked)

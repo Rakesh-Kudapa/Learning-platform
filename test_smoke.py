@@ -215,6 +215,62 @@ def smoke():
         r = c6.get("/admin", follow_redirects=False)
         check("Revoked user can no longer reach /admin", r.status_code == 302)
 
+        # Sync some progress for this learner, then verify admin can read it back
+        r = c6.post("/api/progress", json={"xp": 60, "done": {"0": True}, "checks": {"0": [True]}, "badges": ["first"], "current": 1}, content_type="application/json")
+        check("POST /api/progress saves successfully", r.status_code == 200)
+        r = c6.post("/api/feedback", json={"rating": 4, "experience": "Good course", "suggestions": "More videos"}, content_type="application/json")
+        check("POST /api/feedback for report test", r.status_code == 200)
+        r = c6.post("/api/contributions", json={"title": "Tip", "content": "Use OMOP early"}, content_type="application/json")
+        check("POST /api/contributions for report test", r.status_code == 200)
+
+    # --- Per-user admin actions: performance report, edit, delete ---
+    with app2.test_client() as c2d:
+        c2d.post("/login", data={"email": email, "password": "test1234"}, follow_redirects=True)
+
+        r = c2d.get(f"/api/admin/users/{other_user_id}/report")
+        check("GET /api/admin/users/<id>/report returns 200", r.status_code == 200)
+        report = r.get_json()
+        check("Report includes synced module progress", report["progress"]["xp"] == 60)
+        check("Report module 1 shows 1/1 correct", report["progress"]["modules"][0]["correct"] == 1)
+        check("Report includes feedback", len(report["feedback"]) == 1 and report["feedback"][0]["rating"] == 4)
+        check("Report includes contributions", len(report["contributions"]) == 1)
+
+        new_email = f"renamed{int(time.time()*1000)}@test.local"
+        r = c2d.patch(f"/api/admin/users/{other_user_id}", json={"name": "Renamed User", "email": new_email}, content_type="application/json")
+        check("PATCH /api/admin/users/<id> edits name/email", r.status_code == 200)
+        r = c2d.get("/api/admin/stats")
+        edited = next(u for u in r.get_json()["users"] if u["id"] == other_user_id)
+        check("Edited user shows new name", edited["name"] == "Renamed User")
+        check("Edited user shows new email", edited["email"] == new_email)
+
+        r = c2d.delete(f"/api/admin/users/{other_user_id}")
+        check("DELETE /api/admin/users/<id> removes the user", r.status_code == 200)
+        r = c2d.get("/api/admin/stats")
+        check("Deleted user no longer appears in stats", not any(u["id"] == other_user_id for u in r.get_json()["users"]))
+
+        # Safety checks: can't delete primary admin or self
+        with app2.app_context():
+            admin_user = User.query.filter_by(email=email).first()
+        r = c2d.delete(f"/api/admin/users/{admin_user.id}")
+        check("Primary admin account can't be deleted", r.status_code == 400)
+
+    # --- Bulk delete ---
+    with app2.test_client() as c2e:
+        c2e.post("/login", data={"email": email, "password": "test1234"}, follow_redirects=True)
+        bulk_emails = [f"bulk{i}_{int(time.time()*1000)}@test.local" for i in range(2)]
+        bulk_ids = []
+        for be in bulk_emails:
+            c2e.post("/register", data={"name": "Bulk", "email": be, "password": "test1234"})
+            c2e.get("/logout")
+            c2e.post("/login", data={"email": email, "password": "test1234"}, follow_redirects=True)
+        with app2.app_context():
+            bulk_ids = [User.query.filter_by(email=be).first().id for be in bulk_emails]
+        r = c2e.post("/api/admin/users/bulk-delete", json={"user_ids": bulk_ids}, content_type="application/json")
+        check("POST /api/admin/users/bulk-delete succeeds", r.status_code == 200 and r.get_json()["deleted"] == 2)
+        r = c2e.get("/api/admin/stats")
+        remaining_ids = [u["id"] for u in r.get_json()["users"]]
+        check("Bulk-deleted users are gone from stats", not any(bid in remaining_ids for bid in bulk_ids))
+
     # Verify admin has full access even when APP_MODE=user (universal access)
     os.environ["APP_MODE"] = "user"
     app3 = create_app()

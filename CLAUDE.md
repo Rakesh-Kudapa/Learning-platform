@@ -22,6 +22,13 @@ On `main`:
   table, `/api/admin/unlock|lock|unlock-all|lock-all`) that bypass the
   sequential gate, and universal admin access to `/course` with every
   module pre-unlocked for the admin's own account
+- `feat/admin-user-management` — server-side progress sync (`/api/progress`,
+  written by `course.html` on every `persist()`, debounced) so the admin
+  can see real per-module knowledge-check scores; per-user performance
+  report (`/api/admin/users/<id>/report`) with CSV download; edit
+  name/email (`PATCH /api/admin/users/<id>`); delete a single user or
+  bulk-delete via checkboxes (`DELETE` / `/api/admin/users/bulk-delete`),
+  both blocked for the primary admin and for deleting yourself
 
 **All 12 modules now have real lesson content** (`mod1()`–`mod12()` in
 `templates/course.html`), each with multi-question knowledge checks except
