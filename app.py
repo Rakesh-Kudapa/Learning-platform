@@ -210,10 +210,10 @@ def create_app():
     def api_settings_post():
         payload = request.get_json(silent=True) or {}
         provider = payload.get("llm_provider", "").strip().lower()
-        if provider not in ("gemini", "groq", "ollama"):
-            return jsonify({"error": "Provider must be gemini, groq, or ollama"}), 400
+        if provider not in ("gemini", "groq"):
+            return jsonify({"error": "Provider must be gemini or groq"}), 400
         api_key = (payload.get("api_key") or "").strip()
-        if provider != "ollama" and not api_key:
+        if not api_key:
             return jsonify({"error": f"API key is required for {provider}"}), 400
         _save_settings({"llm_provider": provider, "api_key": api_key})
         return jsonify({"ok": True})

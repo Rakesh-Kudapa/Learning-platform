@@ -2009,7 +2009,6 @@ function renderSettingsHTML(){
        <select id="sProvider" onchange="toggleKeyField()">
          <option value="gemini">Google Gemini (free tier)</option>
          <option value="groq">Groq (free, very fast)</option>
-         <option value="ollama">Ollama (local, no key needed)</option>
        </select>
        <div class="s-hint" id="sProviderHint"></div>
      </div>
@@ -2027,7 +2026,6 @@ function renderSettingsHTML(){
        <ul class="obj-list">
          <li><span class="on">✦</span><span><b>Gemini</b> — go to <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--violet);font-weight:600">aistudio.google.com/app/apikey</a> and click "Create API key." It’s free.</span></li>
          <li><span class="on">✦</span><span><b>Groq</b> — go to <a href="https://console.groq.com/keys" target="_blank" style="color:var(--violet);font-weight:600">console.groq.com/keys</a> and create a free key.</span></li>
-         <li><span class="on">✦</span><span><b>Ollama</b> — install from <a href="https://ollama.com" target="_blank" style="color:var(--violet);font-weight:600">ollama.com</a>, run it locally. No API key needed.</span></li>
        </ul>
      </div>
    </div>`;
@@ -2036,12 +2034,10 @@ function renderSettingsHTML(){
 const PROVIDER_HINTS={
   gemini:'Generous free tier. Best default choice.',
   groq:'Very fast inference. Free tier available.',
-  ollama:'Runs 100% locally on your machine. No key needed, but requires Ollama installed.'
 };
 
 function toggleKeyField(){
   const p=document.getElementById('sProvider').value;
-  document.getElementById('sKeyWrap').style.display=p==='ollama'?'none':'block';
   document.getElementById('sProviderHint').textContent=PROVIDER_HINTS[p]||'';
 }
 
@@ -2065,7 +2061,7 @@ async function loadSettings(){
 async function saveSettings(){
   const provider=document.getElementById('sProvider').value;
   const key=document.getElementById('sKey').value.trim();
-  if(provider!=='ollama'&&!key){
+  if(!key){
     const st=document.getElementById('sStatus');
     const existing=st.querySelector('.s-status.ok');
     if(!existing){
@@ -2074,7 +2070,6 @@ async function saveSettings(){
   }
   const body={llm_provider:provider};
   if(key) body.api_key=key;
-  else if(provider==='ollama') body.api_key='';
   else{ toast('xp','✓','Provider updated (existing key kept)');
     go('settings'); return; }
   try{
