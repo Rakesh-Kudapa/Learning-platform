@@ -1903,21 +1903,42 @@ function submitPlacementTest(){
     </div>`;
   }).join('');
 
-  const pct=Math.round(score/qs.length*100);
-  const msg=score===qs.length?'\u{1F389} Perfect score! You\u2019re well prepared.':score>=3?'\u{1F44D} Good foundation \u2014 the course will fill in the gaps.':'\u{1F4DA} The course will be a great review \u2014 let\u2019s dive in.';
+  const passed=score/qs.length>=0.75;
+  const msg=passed
+    ?(score===qs.length?'\u{1F389} Perfect score \u2014 you\u2019re well prepared. Jump right in!':'\u{1F44D} Good foundation \u2014 the course will fill in any remaining gaps.')
+    :'\u{1F4DA} No worries! The questions you missed are covered step-by-step in the course.';
+  const cta=passed
+    ?`<button class="btn prim" onclick="startCourseFromPlacement()" style="width:100%;margin-top:18px">Start the course \u2192</button>`
+    :`<div style="background:rgba(233,104,60,.08);border:1.5px solid rgba(233,104,60,.35);border-radius:14px;padding:20px 22px;margin-top:18px;text-align:center">
+        <div style="font-size:20px;margin-bottom:8px">\u{1F331}</div>
+        <div style="font-family:'Space Grotesk';font-size:16px;font-weight:700;margin-bottom:6px">We recommend starting as a Beginner</div>
+        <div style="font-size:13.5px;color:var(--ink-soft);margin-bottom:16px">Your score (${score}/5) suggests the foundational content will be really valuable. The course is designed to take you from scratch \u2014 you\u2019ll get the most out of it starting from Module 1.</div>
+        <button class="btn prim" onclick="startCourseAsBeginner()" style="width:100%">\u{1F331} Start as Beginner \u2192</button>
+        <div style="margin-top:12px;font-size:12.5px;color:var(--ink-faint)">Already confident? <a href="#" onclick="startCourseFromPlacement();return false;" style="color:var(--violet);font-weight:600">Continue at ${_ptLevel} level anyway</a></div>
+      </div>`;
   const host=document.getElementById('modalHost');
   host.innerHTML=`<div class="gate-bg"><div class="gate-card" style="max-width:640px;overflow-y:auto;max-height:90vh">
     <svg class="wave-hero" viewBox="0 0 400 54" preserveAspectRatio="none"><path d="M0 40 Q 20 5 40 38 T 80 30 T 120 36 T 160 27 L 400 27" fill="none" stroke="url(#wgrad)" stroke-width="3" stroke-linecap="round"/></svg>
     <h2 style="margin-bottom:6px">You scored ${score} / ${qs.length}</h2>
     <p style="margin-bottom:18px">${msg}</p>
     <div style="text-align:left">${resultItems}</div>
-    <button class="btn prim" onclick="startCourseFromPlacement()" style="width:100%;margin-top:18px">Start the course \u2192</button>
+    ${cta}
   </div></div>`;
 }
 
 function startCourseFromPlacement(){
   document.getElementById('modalHost').innerHTML='';
   try{ render(); }catch(e){ console.error('Render error after placement:',e); }
+}
+
+async function startCourseAsBeginner(){
+  state.preLevel='beginner'; persist();
+  try{
+    await fetch('/api/assessment',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({stage:'pre',level:'beginner'})});
+  }catch(e){}
+  document.getElementById('modalHost').innerHTML='';
+  try{ render(); }catch(e){ console.error('Render error after beginner redirect:',e); }
 }
 
 /* ============================================================
