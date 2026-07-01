@@ -521,34 +521,34 @@ const COURSE=[
  }]},
  {id:3,title:'Key Terminologies',short:'Key Terminologies',type:'content',body:mod4,checks:[
   {xp:15,q:'Which of these is an example of Real-World Data (RWD)?',
-   opts:['A randomized controlled trial result','A patient’s electronic health record from routine care','A drug’s chemical formula','A research grant hypothesis'],
+   opts:['A randomized controlled trial result','A patient\'s electronic health record from routine care','A drug\'s chemical formula','A research grant hypothesis'],
    answer:1,explain:'RWD is data generated during everyday care — like an EHR — not data from a controlled trial or lab bench.'},
   {xp:15,q:'Which term describes a hidden factor that affects both the treatment a patient receives and their outcome, potentially distorting results?',
    opts:['Cohort','Confounder','Phenotyping','Interoperability'],
-   answer:1,explain:'A confounder is exactly that hidden, distorting factor — it’s why real-world studies need careful statistical adjustment, unlike a randomized trial.'},
+   answer:1,explain:'A confounder is exactly that hidden, distorting factor — it\'s why real-world studies need careful statistical adjustment, unlike a randomized trial.'},
   {xp:15,q:'What is the main purpose of the OMOP Common Data Model?',
    opts:['To replace clinical trials','To let health data from different sources be organized identically, so studies are comparable','To generate AI explainer videos','To collect patient-reported survey data'],
    answer:1,explain:'OMOP CDM defines a standard table structure so data from completely different source systems can be combined and compared.'},
   {xp:15,q:'"Phenotyping" in this field means:',
-   opts:['Sequencing a patient’s genome','Identifying which patients truly have a condition using multiple data signals, not just one code','Removing personal details from a dataset','Billing an insurer for a procedure'],
+   opts:['Sequencing a patient\'s genome','Identifying which patients truly have a condition using multiple data signals, not just one code','Removing personal details from a dataset','Billing an insurer for a procedure'],
    answer:1,explain:'Phenotyping combines codes, labs, and notes to more reliably identify a condition than trusting a single diagnosis code alone.'},
   {xp:15,q:'Why is de-identification required before most research use of real-world data?',
-   opts:['To make the data load faster','To remove or mask personal details so individuals can’t be identified','To convert data into FHIR format','To increase the sample size'],
+   opts:['To make the data load faster','To remove or mask personal details so individuals can\'t be identified','To convert data into FHIR format','To increase the sample size'],
    answer:1,explain:'De-identification protects patient privacy by removing or masking identifying details — a requirement before most datasets can be used for research.'},
  ]},
  {id:4,title:'Stakeholders',short:'Stakeholders',type:'content',body:mod5,checks:[
   {xp:15,q:'Which stakeholder primarily decides whether an insurer will pay for a treatment?',
    opts:['Drug Safety team','Payers / HTA bodies','Patients','Data providers'],
-   answer:1,explain:'Payers and Health Technology Assessment (HTA) bodies evaluate a treatment’s value — often using RWE — to decide coverage and reimbursement.'},
+   answer:1,explain:'Payers and Health Technology Assessment (HTA) bodies evaluate a treatment\'s value — often using RWE — to decide coverage and reimbursement.'},
   {xp:15,q:'Which internal team is primarily responsible for watching real-world data for rare safety signals?',
    opts:['Drug Safety / Pharmacovigilance','Market Access','Commercial / Strategy','Regulatory Affairs'],
-   answer:0,explain:'Drug Safety / Pharmacovigilance teams monitor real-world data specifically to catch safety signals that a smaller trial wouldn’t reveal.'},
+   answer:0,explain:'Drug Safety / Pharmacovigilance teams monitor real-world data specifically to catch safety signals that a smaller trial wouldn\'t reveal.'},
   {xp:15,q:'Who are both the original source of the data AND the ultimate intended beneficiary of real-world evidence?',
    opts:['Regulators','Payers','Patients','Data providers'],
-   answer:2,explain:'Patients generate the underlying data through their care, and they’re the people every other stakeholder is ultimately trying to help.'},
+   answer:2,explain:'Patients generate the underlying data through their care, and they\'re the people every other stakeholder is ultimately trying to help.'},
  ]},
  {id:5,title:'Data Landscape',short:'Data Landscape',type:'content',body:mod6,checks:[
-  {xp:15,q:'A doctor’s free-text clinical notes are an example of:',
+  {xp:15,q:'A doctor\'s free-text clinical notes are an example of:',
    opts:['Structured data','Unstructured data','Claims data','Device/sensor data'],
    answer:1,explain:'Free text without a fixed format — like hand-typed clinical notes — is unstructured data. It often needs extra processing before it can be analysed.'},
   {xp:15,q:'A lab result stored in a fixed numeric field is an example of:',
@@ -558,8 +558,8 @@ const COURSE=[
    opts:['HL7 v2','CSV','FHIR','PDF'],
    answer:2,explain:'FHIR is the modern, API-based standard built for real-time data exchange between systems, unlike older formats like HL7 v2 or flat files.'},
   {xp:15,q:'Why can claims data take weeks or months to be fully usable?',
-   opts:['It is encrypted permanently','It naturally lags before it’s complete and mature','It is always unstructured','It never includes billing codes'],
-   answer:1,explain:'Claims data has an inherent lag — it isn’t immediately available or complete, which is one of the typical data quality challenges.'},
+   opts:['It is encrypted permanently','It naturally lags before it\'s complete and mature','It is always unstructured','It never includes billing codes'],
+   answer:1,explain:'Claims data has an inherent lag — it isn\'t immediately available or complete, which is one of the typical data quality challenges.'},
  ]},
  {id:6,title:'Industry Standards',short:'Industry Standards',type:'content',body:mod7,checks:[
   {xp:15,q:'Which standard is specifically designed to make sure a lab test means the same thing across different labs and systems?',
@@ -568,7 +568,7 @@ const COURSE=[
   {xp:15,q:'What does the OMOP Common Data Model primarily solve?',
    opts:['It gives data a common table structure so multi-source studies are possible','It generates AI explainer videos','It replaces the need for clinical trials','It encrypts patient records'],
    answer:0,explain:'OMOP CDM lets health data from different source systems be organized identically, making large multi-source studies comparable.'},
-  {xp:15,q:'Which regulation sets requirements for electronic records and signatures to ensure a regulatory submission’s data trail is trustworthy?',
+  {xp:15,q:'Which regulation sets requirements for electronic records and signatures to ensure a regulatory submission\'s data trail is trustworthy?',
    opts:['ICD-10','21 CFR Part 11','SNOMED CT','HL7 v2'],
    answer:1,explain:'21 CFR Part 11 is a US FDA regulation specifically about the security and attributability of electronic records and signatures.'},
   {xp:15,q:'How does SNOMED CT differ from ICD-10?',
@@ -576,9 +576,9 @@ const COURSE=[
    answer:1,explain:'SNOMED CT captures much finer clinical detail (findings, procedures, symptoms) than ICD-10, which is mainly used for diagnosis coding and billing.'},
  ]},
  {id:7,title:'Technology Ecosystem',short:'Technology Ecosystem',type:'content',body:mod8,checks:[
-  {xp:15,q:'Which tool would you use specifically to map a hospital’s own database structure onto the OMOP Common Data Model?',
+  {xp:15,q:'Which tool would you use specifically to map a hospital\'s own database structure onto the OMOP Common Data Model?',
    opts:['A dashboard / BI tool','An ETL mapping tool like White Rabbit','A claims system','Python'],
-   answer:1,explain:'ETL mapping tools like White Rabbit are built specifically to help map a source system’s unique structure onto a standard model like OMOP.'},
+   answer:1,explain:'ETL mapping tools like White Rabbit are built specifically to help map a source system\'s unique structure onto a standard model like OMOP.'},
   {xp:15,q:'Where is clinical data first generated, before any processing happens?',
    opts:['In a dashboard','In source systems like EHRs and claims platforms','In OHDSI ATLAS','In a Python script'],
    answer:1,explain:'Source systems (EHRs, claims platforms) are where data is first created, during actual patient care or billing.'},
@@ -588,12 +588,12 @@ const COURSE=[
  ]},
  {id:8,title:'Current Industry Challenges',short:'Industry Challenges',type:'content',body:mod9,checks:[
   {xp:15,q:'Why is "bias and confounding" a bigger concern in real-world data than in a randomized clinical trial?',
-   opts:['Real-world data is always smaller in size','Real-world data isn’t randomized, so treated and untreated patients can differ systematically for unrelated reasons','Real-world data is always unstructured','Regulators ignore real-world data entirely'],
+   opts:['Real-world data is always smaller in size','Real-world data isn\'t randomized, so treated and untreated patients can differ systematically for unrelated reasons','Real-world data is always unstructured','Regulators ignore real-world data entirely'],
    answer:1,explain:'Randomization in a trial spreads differences between patients evenly across groups. Real-world data has no such randomization.'},
   {xp:15,q:'Which laws specifically restrict how health data can be shared, stored, and re-used?',
    opts:['HIPAA (US) and GDPR (EU)','ICD-10 and SNOMED CT','OMOP and FHIR','21 CFR Part 11 only'],
    answer:0,explain:'HIPAA and GDPR are privacy laws that govern how health data can be shared and used.'},
-  {xp:15,q:'Two hospitals both claim to be "FHIR-compliant," but their underlying data still doesn’t line up perfectly. This illustrates which challenge?',
+  {xp:15,q:'Two hospitals both claim to be "FHIR-compliant," but their underlying data still doesn\'t line up perfectly. This illustrates which challenge?',
    opts:['Scale','Interoperability','Regulatory acceptance','Bias'],
    answer:1,explain:'Even with shared standards in place, real systems can still implement them inconsistently — that gap is an interoperability challenge.'},
   {xp:15,q:'What does the "scale" challenge in real-world evidence mainly refer to?',
@@ -616,14 +616,14 @@ const COURSE=[
  ]},
  {id:10,title:'Summary',short:'Summary',type:'content',body:mod11,checks:[
   {xp:15,q:'Which of these best summarizes why real-world evidence exists as a field?',
-   opts:['To replace clinical trials entirely','To answer questions trials can’t affordably answer — about diverse, real patients, over the long term','To avoid the need for data standards','To eliminate the role of regulators'],
-   answer:1,explain:'RWE doesn’t replace trials — it fills the gaps trials structurally can’t: narrow populations, high cost, short follow-up, and artificial conditions.'},
+   opts:['To replace clinical trials entirely','To answer questions trials can\'t affordably answer — about diverse, real patients, over the long term','To avoid the need for data standards','To eliminate the role of regulators'],
+   answer:1,explain:'RWE doesn\'t replace trials — it fills the gaps trials structurally can\'t: narrow populations, high cost, short follow-up, and artificial conditions.'},
   {xp:15,q:'Complete the memory hook from this course: "Data is the ingredient, evidence is the ___."',
    opts:['Meal','Standard','Pipeline','Regulation'],
    answer:0,explain:'Data is the raw ingredient, and evidence is what you get after carefully analysing it — the meal.'},
   {xp:15,q:'In the six-stage process from Module 3, which stage comes first?',
    opts:['Analyse','Collect','Curate & quality-check','Generate evidence'],
-   answer:1,explain:'The process starts with Collect (gathering data from sources like EHRs and claims), before it’s ingested, standardized, curated, analysed, and turned into evidence.'},
+   answer:1,explain:'The process starts with Collect (gathering data from sources like EHRs and claims), before it\'s ingested, standardized, curated, analysed, and turned into evidence.'},
  ]},
  {id:11,title:'References',short:'References',type:'content',body:mod12},
 ];
@@ -731,7 +731,7 @@ function mod2(){return `
 function mod3(){return `
  <div class="eyebrow"><span class="mono">MODULE 03</span> • End-to-End Process</div>
  <h1>From raw records to a <em>decision</em></h1>
- <p class="lead">Real-world data doesn’t arrive ready to use. It travels through a chain of deliberate steps before anyone can trust it enough to act on it. This module walks that chain, start to finish.</p>
+ <p class="lead">Real-world data doesn\'t arrive ready to use. It travels through a chain of deliberate steps before anyone can trust it enough to act on it. This module walks that chain, start to finish.</p>
 
  ${narrateBar('Module 3: End-to-End Process',2)}
 
@@ -739,9 +739,9 @@ function mod3(){return `
  <ul class="obj-list">
    <li><span class="on">1</span><span><b>Collect</b> — Pull data from its original sources: hospital EHR systems, insurance claims databases, patient registries, wearable devices.</span></li>
    <li><span class="on">2</span><span><b>Ingest</b> — Bring that data into one working environment (a data warehouse or data lake) so it can all be handled together.</span></li>
-   <li><span class="on">3</span><span><b>Standardize</b> — Convert everything into a common structure and vocabulary, so “heart attack,” “MI,” and “myocardial infarction” are recognized as the same thing. This is where standards like the OMOP Common Data Model or FHIR come in (covered fully in Module 7).</span></li>
+   <li><span class="on">3</span><span><b>Standardize</b> — Convert everything into a common structure and vocabulary, so "heart attack," "MI," and "myocardial infarction" are recognized as the same thing. This is where standards like the OMOP Common Data Model or FHIR come in (covered fully in Module 7).</span></li>
    <li><span class="on">4</span><span><b>Curate &amp; quality-check</b> — Find and fix errors, flag missing or duplicate records, and document exactly what was changed and why.</span></li>
-   <li><span class="on">5</span><span><b>Analyse</b> — Apply statistics or analytics to answer a specific question (e.g. “Do patients on Drug A have fewer hospital readmissions than patients on Drug B?”).</span></li>
+   <li><span class="on">5</span><span><b>Analyse</b> — Apply statistics or analytics to answer a specific question (e.g. "Do patients on Drug A have fewer hospital readmissions than patients on Drug B?").</span></li>
    <li><span class="on">6</span><span><b>Generate evidence</b> — Package the analysis into something a regulator, payer, or doctor can actually use to make a decision.</span></li>
  </ul>
 
@@ -762,12 +762,12 @@ function mod3(){return `
  <ul class="obj-list">
    <li><span class="on">•</span><span><b>De-duplication</b> — the same patient may appear in multiple source systems; records must be matched and merged correctly.</span></li>
    <li><span class="on">•</span><span><b>Mapping to standard codes</b> — translating local hospital codes into a shared standard vocabulary.</span></li>
-   <li><span class="on">•</span><span><b>Cohort definition</b> — precisely specifying which patients belong in the study (e.g. “adults diagnosed with Type 2 diabetes after 2018”).</span></li>
+   <li><span class="on">•</span><span><b>Cohort definition</b> — precisely specifying which patients belong in the study (e.g. "adults diagnosed with Type 2 diabetes after 2018").</span></li>
    <li><span class="on">•</span><span><b>Documentation</b> — every cleaning decision is logged, because regulators and reviewers need to see exactly how the raw data became the evidence.</span></li>
  </ul>
 
  <div class="callout violet"><div class="co-t">\u{1F517} The Excelra connection</div>
-   <p>This six-stage chain is exactly the kind of work Excelra’s data engineering teams do for clients every day — turning scattered real-world records into clean, decision-ready datasets.</p></div>
+   <p>This six-stage chain is exactly the kind of work Excelra\'s data engineering teams do for clients every day — turning scattered real-world records into clean, decision-ready datasets.</p></div>
 
  ${checkBlock(2)}
  ${doubtPanel(2)}
@@ -777,8 +777,8 @@ function mod3(){return `
 function mod4(){
   const terms=[
     ['RWD','Real-World Data','Health data collected during everyday care, outside of a controlled clinical trial (e.g. EHRs, claims, registries).'],
-    ['RWE','Real-World Evidence','The clinical conclusions about a treatment’s use, benefits, or risks, drawn from analysing RWD.'],
-    ['EHR','Electronic Health Record','A digital version of a patient’s medical chart, maintained by a healthcare provider over time.'],
+    ['RWE','Real-World Evidence','The clinical conclusions about a treatment\'s use, benefits, or risks, drawn from analysing RWD.'],
+    ['EHR','Electronic Health Record','A digital version of a patient\'s medical chart, maintained by a healthcare provider over time.'],
     ['Claims data','','Records created when a provider bills an insurer for care; useful for tracking diagnoses, procedures, and costs.'],
     ['Registry','','An organized system that tracks patients with a specific condition, exposure, or procedure, often over many years.'],
     ['Cohort','','A defined group of patients who share a common characteristic and are studied together.'],
@@ -789,9 +789,9 @@ function mod4(){
     ['SNOMED CT','','A detailed clinical vocabulary used to record findings, symptoms, and procedures inside electronic health records.'],
     ['LOINC','','A standard naming system for laboratory tests and clinical measurements, so "blood glucose" means the same thing everywhere.'],
     ['Structured data','','Information stored in a fixed, organized format, like a spreadsheet column (e.g. a lab value, a diagnosis code).'],
-    ['Unstructured data','','Free-text information without a fixed format, like a doctor’s hand-typed clinical notes.'],
+    ['Unstructured data','','Free-text information without a fixed format, like a doctor\'s hand-typed clinical notes.'],
     ['External control arm','','A comparison group built from real-world data, used in place of (or alongside) a placebo group in a trial.'],
-    ['HEOR','Health Economics & Outcomes Research','The discipline that measures a treatment’s cost, value, and real-world outcomes, mainly to inform what payers will cover.'],
+    ['HEOR','Health Economics & Outcomes Research','The discipline that measures a treatment\'s cost, value, and real-world outcomes, mainly to inform what payers will cover.'],
     ['Confounder','','A hidden factor that affects both the treatment a patient receives and their outcome, which can distort results if not accounted for.'],
     ['Interoperability','','The ability of different health IT systems to exchange data and correctly understand what it means.'],
     ['Data warehouse','','A large storage system that holds cleaned, structured data from multiple sources, ready for analysis.'],
@@ -800,7 +800,7 @@ function mod4(){
   return `
  <div class="eyebrow"><span class="mono">MODULE 04</span> • Key Terminologies</div>
  <h1>The <em>vocabulary</em> of real-world evidence</h1>
- <p class="lead">Every field has its own shorthand. Knowing these 20 terms means you can read any RWD/RWE document, conversation, or job posting and actually follow what’s being said.</p>
+ <p class="lead">Every field has its own shorthand. Knowing these 20 terms means you can read any RWD/RWE document, conversation, or job posting and actually follow what\'s being said.</p>
 
  ${narrateBar('Module 4: Key Terminologies',3)}
 
@@ -831,8 +831,8 @@ function mod4(){
 
 function mod5(){return `
  <div class="eyebrow"><span class="mono">MODULE 05</span> • Stakeholders</div>
- <h1>Who’s actually in the <em>room</em></h1>
- <p class="lead">Real-world evidence isn’t built by one team in isolation — it passes through many hands, each with a different stake in getting it right. Knowing who’s who tells you who you’re really working for.</p>
+ <h1>Who\'s actually in the <em>room</em></h1>
+ <p class="lead">Real-world evidence isn\'t built by one team in isolation — it passes through many hands, each with a different stake in getting it right. Knowing who\'s who tells you who you\'re really working for.</p>
 
  ${narrateBar('Module 5: Stakeholders',4)}
 
@@ -841,7 +841,7 @@ function mod5(){return `
    <li><span class="on">•</span><span><b>RWE / Epidemiology team</b> — designs the studies, chooses data sources, and runs the analysis.</span></li>
    <li><span class="on">•</span><span><b>HEOR &amp; Market Access</b> — uses RWE to build the value story that convinces payers to cover a treatment.</span></li>
    <li><span class="on">•</span><span><b>Medical Affairs</b> — uses RWE to answer clinician questions and support scientific communication after launch.</span></li>
-   <li><span class="on">•</span><span><b>Drug Safety / Pharmacovigilance</b> — monitors real-world data for safety signals that wouldn’t show up in a smaller trial.</span></li>
+   <li><span class="on">•</span><span><b>Drug Safety / Pharmacovigilance</b> — monitors real-world data for safety signals that wouldn\'t show up in a smaller trial.</span></li>
    <li><span class="on">•</span><span><b>Regulatory Affairs</b> — packages RWE for submission to agencies like the FDA or EMA.</span></li>
  </ul>
 
@@ -852,7 +852,7 @@ function mod5(){return `
 
  <h2>Outside the company</h2>
  <div class="cards2">
-   <div class="dcard rwd"><span class="dc-tag">DATA PROVIDERS</span><h4>EHR vendors, claims aggregators, registries</h4><p>Specialist partners (like Excelra) curate and structure that data so it’s actually usable.</p></div>
+   <div class="dcard rwd"><span class="dc-tag">DATA PROVIDERS</span><h4>EHR vendors, claims aggregators, registries</h4><p>Specialist partners (like Excelra) curate and structure that data so it\'s actually usable.</p></div>
    <div class="dcard rwe"><span class="dc-tag">REGULATORS</span><h4>FDA, EMA, and others</h4><p>Decide how much weight RWE can carry in an approval or label decision.</p></div>
    <div class="dcard vlt"><span class="dc-tag">PAYERS</span><h4>Insurers &amp; HTA bodies</h4><p>Groups like NICE (UK) or ICER (US) decide what gets funded, based partly on real-world value evidence.</p></div>
    <div class="dcard rwd"><span class="dc-tag">PROVIDERS</span><h4>Doctors &amp; hospitals</h4><p>Generate the underlying data through routine care, and later use RWE-backed guidance to treat patients.</p></div>
@@ -895,7 +895,7 @@ function mod6(){return `
  </div>
 
  <h2>Structured vs. unstructured data</h2>
- <p><b>Structured data</b> lives in fixed fields — a lab value, a diagnosis code, a date of birth. It’s easy for software to search and analyse. <b>Unstructured data</b> is free text or media — clinical notes, scanned PDFs, discharge summaries. It holds rich detail but needs extra processing (often natural language processing) before a computer can use it. In practice, most real-world datasets are a <i>mix</i> of both, and a lot of the most clinically meaningful detail often hides in the unstructured notes.</p>
+ <p><b>Structured data</b> lives in fixed fields — a lab value, a diagnosis code, a date of birth. It\'s easy for software to search and analyse. <b>Unstructured data</b> is free text or media — clinical notes, scanned PDFs, discharge summaries. It holds rich detail but needs extra processing (often natural language processing) before a computer can use it. In practice, most real-world datasets are a <i>mix</i> of both, and a lot of the most clinically meaningful detail often hides in the unstructured notes.</p>
 
  <h2>Common file formats</h2>
  <ul class="obj-list">
@@ -903,14 +903,14 @@ function mod6(){return `
    <li><span class="on">•</span><span><b>Relational database tables</b> — structured data organized into linked tables, such as the OMOP Common Data Model.</span></li>
    <li><span class="on">•</span><span><b>FHIR (JSON/XML)</b> — a modern, API-friendly format for exchanging patient data between systems.</span></li>
    <li><span class="on">•</span><span><b>HL7 v2 messages</b> — an older but still very common messaging format used inside hospitals.</span></li>
-   <li><span class="on">•</span><span><b>Free text / scanned documents</b> — clinical notes and letters, usually needing extraction before they’re analysis-ready.</span></li>
+   <li><span class="on">•</span><span><b>Free text / scanned documents</b> — clinical notes and letters, usually needing extraction before they\'re analysis-ready.</span></li>
  </ul>
 
  <h2>Typical data quality challenges</h2>
  <p class="muted">Missingness (fields never filled in) · Miscoding (wrong or inconsistent codes) · Duplicate records (same patient, multiple systems) · Inconsistent units or timestamps · Lag (claims data can take weeks or months to fully mature).</p>
 
  <div class="callout"><div class="co-t">⚠️ Common mistake</div>
-   <p>Don’t assume "more data" automatically means "better evidence." A huge but messy, inconsistently-coded dataset can be <i>less</i> useful than a smaller, well-curated one — which is exactly why curation and standards matter so much.</p></div>
+   <p>Don\'t assume "more data" automatically means "better evidence." A huge but messy, inconsistently-coded dataset can be <i>less</i> useful than a smaller, well-curated one — which is exactly why curation and standards matter so much.</p></div>
 
  ${checkBlock(5)}
  ${doubtPanel(5)}
@@ -920,7 +920,7 @@ function mod6(){return `
 function mod7(){return `
  <div class="eyebrow"><span class="mono">MODULE 07</span> • Industry Standards</div>
  <h1>The common <em>language</em> that makes any of this possible</h1>
- <p class="lead">Without shared standards, data from one hospital can’t be compared to data from another. This module covers the standards that let real-world data from anywhere become evidence that’s actually trustworthy.</p>
+ <p class="lead">Without shared standards, data from one hospital can\'t be compared to data from another. This module covers the standards that let real-world data from anywhere become evidence that\'s actually trustworthy.</p>
 
  ${narrateBar('Module 7: Industry Standards',6)}
 
@@ -933,7 +933,7 @@ function mod7(){return `
  <ul class="obj-list">
    <li><span class="on">•</span><span><b>OMOP CDM</b> — defines a standard set of tables so health data from completely different source systems can be organized identically. Maintained by the OHDSI community.</span></li>
    <li><span class="on">•</span><span><b>FHIR</b> — a modern, API-based standard for exchanging health data between systems in real time, widely adopted by current EHR platforms.</span></li>
-   <li><span class="on">•</span><span><b>HL7 v2</b> — an older, message-based standard still heavily used inside hospitals. FHIR is HL7’s newer, more flexible successor.</span></li>
+   <li><span class="on">•</span><span><b>HL7 v2</b> — an older, message-based standard still heavily used inside hospitals. FHIR is HL7's newer, more flexible successor.</span></li>
  </ul>
 
  <h2>Clinical vocabulary standards</h2>
@@ -950,7 +950,7 @@ function mod7(){return `
  </ul>
 
  <div class="callout magenta"><div class="co-t">\u{1F517} The Excelra connection</div>
-   <p>Mapping messy source data onto standards like OMOP and FHIR — and making sure that mapping is documented and defensible — is core, daily work for data curation teams like Excelra’s.</p></div>
+   <p>Mapping messy source data onto standards like OMOP and FHIR — and making sure that mapping is documented and defensible — is core, daily work for data curation teams like Excelra\'s.</p></div>
 
  ${checkBlock(6)}
  ${doubtPanel(6)}
@@ -980,13 +980,13 @@ function mod8(){return `
  </ul>
 
  <h2>Standardization tooling</h2>
- <p><b>OHDSI ATLAS</b> — a tool from the OHDSI open-science community for exploring data already mapped to OMOP. <b>ETL mapping tools</b> (e.g. White Rabbit, Rabbit-in-a-Hat) — help map a source database’s unique structure onto a standard model like OMOP.</p>
+ <p><b>OHDSI ATLAS</b> — a tool from the OHDSI open-science community for exploring data already mapped to OMOP. <b>ETL mapping tools</b> (e.g. White Rabbit, Rabbit-in-a-Hat) — help map a source database\'s unique structure onto a standard model like OMOP.</p>
 
  <h2>Analytics &amp; reporting</h2>
  <p><b>Python / R</b> — the most common languages for statistical analysis. <b>SQL</b> — used to query structured data directly. <b>Dashboards / BI tools</b> — turn analysis results into visual reports non-technical stakeholders can read.</p>
 
  <div class="callout violet"><div class="co-t">\u{1F517} The Excelra connection</div>
-   <p>This is the exact stack Excelra’s data engineering teams work in daily — cloud platforms, Spark/Databricks-scale processing, and standardization tooling — to turn raw client data into analysis-ready datasets.</p></div>
+   <p>This is the exact stack Excelra\'s data engineering teams work in daily — cloud platforms, Spark/Databricks-scale processing, and standardization tooling — to turn raw client data into analysis-ready datasets.</p></div>
 
  ${checkBlock(7)}
  ${doubtPanel(7)}
@@ -996,15 +996,15 @@ function mod8(){return `
 function mod9(){return `
  <div class="eyebrow"><span class="mono">MODULE 09</span> • Current Industry Challenges</div>
  <h1>What still makes this <em>hard</em></h1>
- <p class="lead">None of the previous modules are solved problems — they’re ongoing challenges that every team in this field works against, every day.</p>
+ <p class="lead">None of the previous modules are solved problems — they\'re ongoing challenges that every team in this field works against, every day.</p>
 
  ${narrateBar('Module 9: Current Industry Challenges',8)}
 
  <div class="cards3">
    <div class="dcard rwd"><span class="dc-tag">DATA QUALITY</span><h4>Missingness</h4><p>Source systems were built for care and billing, not research — so fields go unfilled, get miscoded, or arrive late.</p></div>
-   <div class="dcard rwe"><span class="dc-tag">SYSTEMS</span><h4>Interoperability</h4><p>Even with standards like FHIR and OMOP, real systems still vary in how consistently they’re implemented.</p></div>
+   <div class="dcard rwe"><span class="dc-tag">SYSTEMS</span><h4>Interoperability</h4><p>Even with standards like FHIR and OMOP, real systems still vary in how consistently they\'re implemented.</p></div>
    <div class="dcard vlt"><span class="dc-tag">LEGAL</span><h4>Privacy &amp; compliance</h4><p>Laws like HIPAA (US) and GDPR (EU) protect patient privacy and restrict how health data can be shared, stored, and re-used.</p></div>
-   <div class="dcard rwd"><span class="dc-tag">STATISTICS</span><h4>Bias &amp; confounding</h4><p>Real-world data is never randomized — patients who receive a treatment differ systematically from those who don’t, for reasons unrelated to the treatment.</p></div>
+   <div class="dcard rwd"><span class="dc-tag">STATISTICS</span><h4>Bias &amp; confounding</h4><p>Real-world data is never randomized — patients who receive a treatment differ systematically from those who don\'t, for reasons unrelated to the treatment.</p></div>
    <div class="dcard rwe"><span class="dc-tag">REGULATORY</span><h4>Acceptance</h4><p>Acceptance still varies by use case — RWE is more readily accepted for some questions than others.</p></div>
    <div class="dcard vlt"><span class="dc-tag">INFRASTRUCTURE</span><h4>Scale</h4><p>Modern healthcare generates enormous volumes of data. Processing it requires real infrastructure.</p></div>
  </div>
@@ -1045,7 +1045,7 @@ function mod10(){return `
  <p class="muted">Faster time-to-evidence. Lower cost per study. More consistent quality across teams and projects. And the ability to scale to far larger, more diverse datasets than manual methods ever could.</p>
 
  <div class="callout violet"><div class="co-t">\u{1F517} The Excelra connection</div>
-   <p>This is the direction Excelra’s own AI-powered tools are heading — using automation and AI to accelerate exactly the kind of curation and analysis work this course has walked through.</p></div>
+   <p>This is the direction Excelra\'s own AI-powered tools are heading — using automation and AI to accelerate exactly the kind of curation and analysis work this course has walked through.</p></div>
 
  ${checkBlock(9)}
  ${doubtPanel(9)}
@@ -1055,7 +1055,7 @@ function mod10(){return `
 function mod11(){return `
  <div class="eyebrow"><span class="mono">MODULE 11</span> • Summary</div>
  <h1>Putting it all <em>together</em></h1>
- <p class="lead">Ten modules, one connected story: how everyday healthcare data becomes the evidence that shapes real medical decisions. Here’s the whole arc in one place.</p>
+ <p class="lead">Ten modules, one connected story: how everyday healthcare data becomes the evidence that shapes real medical decisions. Here\'s the whole arc in one place.</p>
 
  ${narrateBar('Module 11: Summary',10)}
 
@@ -1078,7 +1078,7 @@ function mod11(){return `
  </ul>
 
  <h2>Recommended further reading</h2>
- <p class="muted">The FDA’s Real-World Evidence program materials (search "FDA Real-World Evidence Framework") · OHDSI.org — the open-science community behind the OMOP Common Data Model · ISPOR — publishes widely-used good-practice guidance for RWE and HEOR studies.</p>
+ <p class="muted">The FDA\'s Real-World Evidence program materials (search "FDA Real-World Evidence Framework") · OHDSI.org — the open-science community behind the OMOP Common Data Model · ISPOR — publishes widely-used good-practice guidance for RWE and HEOR studies.</p>
 
  <div class="callout"><div class="co-t">\u{1F4A1} Memory hook</div>
    <p>If you remember only one sentence from this whole course: <b>data is the ingredient, evidence is the meal</b> — and turning one into the other is real, careful, valuable work.</p></div>
@@ -1115,13 +1115,13 @@ function mod12(){return `
 
  <h2>Further reading</h2>
  <ul class="obj-list">
-   <li><span class="on">•</span><span>The FDA’s Real-World Evidence program materials (search "FDA Real-World Evidence Framework").</span></li>
+   <li><span class="on">•</span><span>The FDA\'s Real-World Evidence program materials (search "FDA Real-World Evidence Framework").</span></li>
    <li><span class="on">•</span><span><b>OHDSI.org</b> — the open-science community behind the OMOP Common Data Model, including the ATLAS tool.</span></li>
    <li><span class="on">•</span><span><b>ISPOR</b> (International Society for Pharmacoeconomics and Outcomes Research) — publishes widely-used good-practice guidance for RWE and HEOR studies.</span></li>
  </ul>
 
  <div class="callout"><div class="co-t">\u{1F393} Course complete</div>
-   <p>You’ve covered the full RWD/RWE journey. Head to the <b>Final Exam</b> from the sidebar to test what you’ve learned and unlock your certificate.</p></div>
+   <p>You\'ve covered the full RWD/RWE journey. Head to the <b>Final Exam</b> from the sidebar to test what you\'ve learned and unlock your certificate.</p></div>
 
  ${doubtPanel(11)}
  ${pageNav(11)}
@@ -1522,6 +1522,11 @@ function render(){
     view.innerHTML=renderExamHTML();
     document.getElementById('scroll').scrollTop=0; persist(); return;
   }
+  if(state.current==='finaltest'){
+    view.innerHTML=renderFinalTestHTML();
+    document.getElementById('scroll').scrollTop=0; persist();
+    loadExamQuestions(); return;
+  }
   if(state.current==='certificate'){
     view.innerHTML=renderCertificateHTML();
     document.getElementById('scroll').scrollTop=0; persist(); return;
@@ -1558,7 +1563,7 @@ function renderNav(){
   const extra=document.getElementById('extraList');
   if(extra){
     const finOn=state.current==='finale', conOn=state.current==='contrib';
-    const examOn=state.current==='exam'||state.current==='certificate';
+    const examOn=state.current==='exam'||state.current==='certificate'||state.current==='finaltest';
     const examLocked=!allModulesDone();
     extra.innerHTML=`
       <button class="extra-btn" style="${examOn?'background:var(--surface-2);color:var(--ink)':''}" onclick="${examLocked?`toast('lvl','\u{1F512}','Finish every module to unlock the final exam')`:`go('exam')`}">
@@ -1745,7 +1750,7 @@ async function askDoubt(moduleId){
   }catch(e){
     const tip=document.getElementById('dt-'+moduleId);
     if(tip) tip.remove();
-    log.innerHTML+=`<div class="d-msg tutor"><div class="d-label">Tutor</div>Couldn’t reach the tutor — check your connection.</div>`;
+    log.innerHTML+=`<div class="d-msg tutor"><div class="d-label">Tutor</div>Couldn\'t reach the tutor — check your connection.</div>`;
   }
   btn.disabled=false;
   log.scrollTop=log.scrollHeight;
@@ -2132,29 +2137,23 @@ function renderExamHTML(){
   const overallPct=totalQ? Math.round(totalCorrect/totalQ*100):0;
 
   const exam=state.examResult;
-  const passMark=Math.round((exam&&exam.pass_mark?exam.pass_mark:0.75)*100);
-
-  let examSection='';
-  if(exam){
-    examSection=`
-    <div class="result-banner ${exam.passed?'pass':'fail'}">
-      <div class="rb-score">${exam.score} / ${exam.total}</div>
-      <div class="rb-msg">${exam.passed?`\u{1F389} You passed! (need ${passMark}%+) — your certificate is ready.`:`Not quite — you need ${passMark}%+ to pass. Give it another go.`}</div>
-      <div style="margin-top:18px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-        ${exam.passed?`<button class="btn prim" onclick="go('certificate')">View certificate →</button>`:''}
-        <button class="btn ghost" onclick="startExam()">${exam.passed?'Retake exam':'Try again'}</button>
-      </div>
-    </div>`;
-  }else{
-    examSection=`
-    <p class="muted">You’ve completed every module — nice work. When you’re ready, take the ${TEST_QUESTIONS_COUNT}-question final exam covering the whole course. You need <b>${passMark}%</b> or higher to pass and unlock your certificate.</p>
-    <button class="btn prim" style="margin-top:6px" onclick="startExam()">Start final exam →</button>`;
-  }
+  const passMark=75;
+  const examCard=exam
+    ?`<div class="result-banner ${exam.passed?'pass':'fail'}" style="margin-bottom:14px">
+        <div class="rb-score">${exam.score} / ${exam.total}</div>
+        <div class="rb-msg" style="margin-bottom:14px">${exam.passed?'\u{1F389} Passed — certificate unlocked!':'Not quite — '+passMark+'%+ needed. Try again.'}</div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          ${exam.passed?`<button class="btn prim" onclick="go('certificate')">View certificate →</button>`:''}
+          <button class="btn ghost" onclick="startExam()">${exam.passed?'Retake':'Try again'} →</button>
+        </div>
+      </div>`
+    :`<p class="muted" style="margin-bottom:14px">Ready to test everything you\'ve learned? The exam has ${TEST_QUESTIONS_COUNT} questions and requires ${passMark}%+ to pass.</p>
+      <button class="btn prim" onclick="startExam()">\u{1F393} Open Final Exam →</button>`;
 
   return `
-   <div class="eyebrow"><span class="mono">PERFORMANCE</span> • Dashboard &amp; Final Exam</div>
+   <div class="eyebrow"><span class="mono">PERFORMANCE</span> • Dashboard</div>
    <h1>Your <em>performance</em></h1>
-   <p class="lead">Every module's knowledge-check score, plus the whole-course final exam and your certificate.</p>
+   <p class="lead">Every module\'s knowledge-check score and your overall progress at a glance.</p>
 
    <div class="summary-row">
      <div class="summary-card"><div class="sc-val">${totalCorrect}/${totalQ}</div><div class="sc-lbl">Module Qs Correct</div></div>
@@ -2171,9 +2170,9 @@ function renderExamHTML(){
      </table>
    </div>
 
-   <div class="wrap-box" id="examBox">
-     <h3 style="margin-top:0">Final Exam</h3>
-     <div id="examBody">${examSection}</div>
+   <div class="wrap-box">
+     <h3 style="margin-top:0">\u{1F393} Final Exam</h3>
+     ${examCard}
    </div>
   `;
 }
@@ -2181,21 +2180,51 @@ function renderExamHTML(){
 const TEST_QUESTIONS_COUNT=13;
 let examQuestions=[], examAnswers={};
 
-async function startExam(){
-  const box=document.getElementById('examBody');
-  box.innerHTML='<p class="muted">Loading exam…</p>';
-  try{
-    const r=await fetch('/api/test');
-    examQuestions=await r.json();
-    examAnswers={};
-    renderExamQuestions();
-  }catch(e){
-    box.innerHTML='<p class="muted">Couldn’t load the exam — check your connection and try again.</p>';
+function startExam(){
+  examQuestions=[]; examAnswers={};
+  go('finaltest');
+}
+
+async function loadExamQuestions(){
+  if(examQuestions.length===0){
+    const box=document.getElementById('examBody');
+    if(box) box.innerHTML='<p class="muted">Loading questions…</p>';
+    try{
+      const r=await fetch('/api/test');
+      examQuestions=await r.json();
+    }catch(e){
+      if(box) box.innerHTML='<p class="muted">Couldn\'t load the exam — check your connection and try again.</p>';
+      return;
+    }
   }
+  renderExamQuestions();
+}
+
+function renderFinalTestHTML(){
+  const exam=state.examResult;
+  const passMark=Math.round(0.75*100);
+  let topBanner='';
+  if(exam){
+    topBanner=`<div class="result-banner ${exam.passed?'pass':'fail'}" style="margin-bottom:20px">
+      <div class="rb-score">${exam.score} / ${exam.total}</div>
+      <div class="rb-msg">${exam.passed?`\u{1F389} You passed (${passMark}%+) — retake below to improve your score.`:`Score: ${Math.round(exam.score/exam.total*100)}% — you need ${passMark}%+ to pass. Try again below.`}</div>
+    </div>`;
+  }
+  return `
+   <div class="eyebrow"><span class="mono">FINAL EXAM</span> • ${exam?'Retake':'Take the exam'}</div>
+   <h1>Whole-course <em>final exam</em></h1>
+   <p class="lead">${TEST_QUESTIONS_COUNT} questions covering all ${COURSE.filter(m=>m.checks&&m.checks.length).length} modules. You need <b>${passMark}%</b> or higher to earn your certificate.</p>
+   ${topBanner}
+   <div style="margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+     <button class="btn ghost" onclick="go('exam')">← Back to Performance</button>
+   </div>
+   <div id="examBody"></div>
+  `;
 }
 
 function renderExamQuestions(){
   const box=document.getElementById('examBody');
+  if(!box) return;
   const answeredCount=Object.keys(examAnswers).length;
   box.innerHTML=`
     <div class="exam-progress">${answeredCount} of ${examQuestions.length} answered</div>
@@ -2219,7 +2248,7 @@ function selectExamAnswer(qid,oi){
 
 async function submitExam(){
   const box=document.getElementById('examBody');
-  box.innerHTML='<p class="muted">Scoring your exam…</p>';
+  if(box) box.innerHTML='<p class="muted">Scoring your exam…</p>';
   try{
     const r=await fetch('/api/test/submit',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({answers:examAnswers})});
@@ -2227,9 +2256,20 @@ async function submitExam(){
     state.examResult=result; persist();
     if(result.passed){ toast('badge','\u{1F393}','Certified! You passed the final exam'); }
     else{ toast('lvl','\u{1F4DD}','Not quite — review and try again'); }
-    render();
+    const exam=result;
+    const passMark=Math.round(0.75*100);
+    if(box) box.innerHTML=`
+      <div class="result-banner ${exam.passed?'pass':'fail'}">
+        <div class="rb-score">${exam.score} / ${exam.total}</div>
+        <div class="rb-msg">${exam.passed?`\u{1F389} You passed! (${passMark}%+) — your certificate is ready.`:`Not quite — you need ${passMark}%+ to pass. Give it another go.`}</div>
+        <div style="margin-top:18px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          ${exam.passed?`<button class="btn prim" onclick="go('certificate')">View certificate →</button>`:''}
+          <button class="btn ghost" onclick="startExam()">${exam.passed?'Retake exam':'Try again'}</button>
+          <button class="btn ghost" onclick="go('exam')">← Back to Performance</button>
+        </div>
+      </div>`;
   }catch(e){
-    box.innerHTML='<p class="muted">Couldn’t submit — check your connection and try again.</p><button class="btn ghost" onclick="renderExamQuestions()">Back to exam</button>';
+    if(box) box.innerHTML='<p class="muted">Couldn\'t submit — check your connection and try again.</p><button class="btn ghost" onclick="renderExamQuestions()">Back to exam</button>';
   }
 }
 
@@ -2245,7 +2285,7 @@ function renderCertificateHTML(){
   return `
    <div class="eyebrow"><span class="mono">CERTIFICATE</span> • Course Complete</div>
    <h1>Your <em>certificate</em></h1>
-   <p class="lead">Congratulations — print or save this as a PDF using your browser's print dialog.</p>
+   <p class="lead">Congratulations — print or save this as a PDF using your browser\'s print dialog.</p>
 
    <div class="cert-card">
      <div class="cert-kicker">Excelra • Life Sciences Learning</div>
@@ -2330,7 +2370,7 @@ function renderSettingsHTML(){
      <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--line)">
        <h3 style="font-size:15px;margin-bottom:10px">Where to get a free key</h3>
        <ul class="obj-list">
-         <li><span class="on">✦</span><span><b>Gemini</b> — go to <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--violet);font-weight:600">aistudio.google.com/app/apikey</a> and click "Create API key." It’s free.</span></li>
+         <li><span class="on">✦</span><span><b>Gemini</b> — go to <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--violet);font-weight:600">aistudio.google.com/app/apikey</a> and click "Create API key." It\'s free.</span></li>
          <li><span class="on">✦</span><span><b>Groq</b> — go to <a href="https://console.groq.com/keys" target="_blank" style="color:var(--violet);font-weight:600">console.groq.com/keys</a> and create a free key.</span></li>
        </ul>
      </div>
@@ -2359,7 +2399,7 @@ async function loadSettings(){
       st.innerHTML=`<div class="s-status ok">✓ API key configured (${s.api_key_masked})</div>`;
       document.getElementById('sKey').placeholder='Key saved — enter a new one to replace it';
     }else{
-      st.innerHTML=`<div class="s-status no">✘ No API key set — the AI tutor won’t work until you add one</div>`;
+      st.innerHTML=`<div class="s-status no">✘ No API key set — the AI tutor won\'t work until you add one</div>`;
     }
   }catch(e){}
 }
