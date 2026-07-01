@@ -175,6 +175,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .opt .ok{flex:none;width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line);
   display:grid;place-items:center;font-family:'IBM Plex Mono';font-size:11px;color:var(--ink-faint)}
 .opt.correct{border-color:var(--success);background:rgba(21,181,126,.07)}
+.opt.sel{border-color:var(--violet);background:rgba(108,92,231,.08)}
+.opt.sel .ok{background:var(--violet);border-color:transparent;color:#fff}
 .opt.correct .ok{background:var(--success);border-color:transparent;color:#fff}
 .opt.wrong{border-color:var(--warn);background:rgba(233,104,60,.06)}
 .opt.wrong .ok{background:var(--warn);border-color:transparent;color:#fff}
@@ -1794,13 +1796,128 @@ async function submitLevel(stage,level){
   }catch(e){ console.warn('Assessment POST error:',e); }
   if(stage==='pre'){
     state.preLevel=level; persist();
-    document.getElementById('modalHost').innerHTML='';
-    try{ render(); }catch(e){ console.error('Render error after gate:',e); }
+    if(level==='beginner'){
+      document.getElementById('modalHost').innerHTML='';
+      try{ render(); }catch(e){ console.error('Render error after gate:',e); }
+    }else{
+      showPlacementTest(level);
+    }
   }else{
     state.postLevel=level; persist();
     try{ render(); }catch(e){ console.error('Render error:',e); }
     toast('badge','\u2728','Thanks \u2014 growth saved');
   }
+}
+
+/* ============================================================
+   PLACEMENT TEST  (medium / advanced)
+============================================================ */
+const PLACEMENT_TESTS={
+  medium:[
+    {q:'Why does the Real-World Evidence function exist?',
+     opts:['Clinical trials are cheap and cover every kind of patient','Trials are narrow, stop at approval, and decisions need evidence on diverse real patients over time','Regulators have banned clinical trials','Real-world data is always cleaner than trial data'],
+     answer:1,explain:'Trials are narrow, expensive, and end at approval. RWE fills those gaps for real patients over time.'},
+    {q:'Which step comes right after data is standardized in the RWD pipeline?',
+     opts:['Collect','Ingest','Curate & quality-check','Generate evidence'],
+     answer:2,explain:'The order is Collect \u2192 Ingest \u2192 Standardize \u2192 Curate & QC \u2192 Analyse \u2192 Evidence.'},
+    {q:'What is the main purpose of the OMOP Common Data Model?',
+     opts:['To replace clinical trials','To let health data from different sources be organized identically so studies are comparable','To generate AI explainer videos','To encrypt patient records'],
+     answer:1,explain:'OMOP CDM gives data a common table structure so studies across many sources are possible.'},
+    {q:'Which stakeholder primarily decides whether an insurer will pay for a treatment?',
+     opts:['Drug Safety team','Payers / HTA bodies','Patients','Data providers'],
+     answer:1,explain:'Payers and HTA bodies evaluate value using RWE to decide coverage and reimbursement.'},
+    {q:'A doctor\u2019s free-text clinical notes are an example of:',
+     opts:['Structured data','Unstructured data','Claims data','Device/sensor data'],
+     answer:1,explain:'Free text without a fixed format is unstructured data, needing NLP before analysis.'},
+  ],
+  advanced:[
+    {q:'Which standard is specifically designed to make sure a lab test means the same thing across different labs and systems?',
+     opts:['OMOP CDM','FHIR','LOINC','21 CFR Part 11'],
+     answer:2,explain:'LOINC is the naming system specifically for laboratory tests and measurements.'},
+    {q:'Why is \u201cbias and confounding\u201d a bigger concern in real-world data than in a randomized clinical trial?',
+     opts:['Real-world data is always smaller','Real-world data isn\u2019t randomized, so treated and untreated patients can differ systematically for unrelated reasons','Real-world data is always unstructured','Regulators ignore real-world data entirely'],
+     answer:1,explain:'Randomization removes bias in trials; real-world data has no such control, creating potential confounding.'},
+    {q:'Which regulation sets requirements for electronic records and signatures to ensure a regulatory submission\u2019s data trail is trustworthy?',
+     opts:['ICD-10','21 CFR Part 11','SNOMED CT','HL7 v2'],
+     answer:1,explain:'21 CFR Part 11 governs the security and attributability of electronic records in regulatory submissions.'},
+    {q:'Which tool is used specifically to map a hospital\u2019s own database structure onto the OMOP Common Data Model?',
+     opts:['A dashboard / BI tool','An ETL mapping tool like White Rabbit','A claims system','Python'],
+     answer:1,explain:'ETL mapping tools like White Rabbit are built to map source system structures onto OMOP.'},
+    {q:'Why is ML-based phenotyping considered more reliable than relying on a single diagnosis code?',
+     opts:['It ignores lab results entirely','It combines many signals (codes, labs, notes) instead of trusting one code that could be missing or wrong','It only works with structured data','It replaces the need for any clinical review'],
+     answer:1,explain:'A single code can be missing or miscoded; ML phenotyping combines multiple signals for a more accurate picture.'},
+  ],
+};
+
+let _ptAnswers={};
+let _ptLevel='';
+
+function showPlacementTest(level){
+  _ptLevel=level; _ptAnswers={};
+  const qs=PLACEMENT_TESTS[level]||[];
+  const host=document.getElementById('modalHost');
+  host.innerHTML=`<div class="gate-bg"><div class="gate-card" style="max-width:640px;overflow-y:auto;max-height:90vh">
+    <svg class="wave-hero" viewBox="0 0 400 54" preserveAspectRatio="none"><path d="M0 40 Q 20 5 40 38 T 80 30 T 120 36 T 160 27 L 400 27" fill="none" stroke="url(#wgrad)" stroke-width="3" stroke-linecap="round"/></svg>
+    <h2>Placement check \u2014 ${level.charAt(0).toUpperCase()+level.slice(1)} level</h2>
+    <p style="margin-bottom:20px">5 quick questions to confirm your starting point. Answer all to continue.</p>
+    <div id="ptQuestions">
+      ${qs.map((q,qi)=>`
+      <div class="pt-q" id="ptq-${qi}" style="margin-bottom:20px;text-align:left">
+        <div class="q" style="font-size:15px;margin-bottom:10px">${qi+1}. ${q.q}</div>
+        ${q.opts.map((o,oi)=>`<button class="opt" id="ptopt-${qi}-${oi}" onclick="selectPTAnswer(${qi},${oi})">
+          <span class="ok">${String.fromCharCode(65+oi)}</span><span>${o}</span></button>`).join('')}
+      </div>`).join('')}
+    </div>
+    <button class="btn prim" id="ptSubmit" onclick="submitPlacementTest()" disabled style="width:100%;margin-top:6px">Answer all questions to continue</button>
+  </div></div>`;
+}
+
+function selectPTAnswer(qi,ai){
+  const qs=PLACEMENT_TESTS[_ptLevel]||[];
+  _ptAnswers[qi]=ai;
+  qs[qi].opts.forEach((_,oi)=>{
+    const btn=document.getElementById('ptopt-'+qi+'-'+oi);
+    if(btn) btn.classList.toggle('sel',oi===ai);
+  });
+  const allAnswered=Object.keys(_ptAnswers).length===qs.length;
+  const sub=document.getElementById('ptSubmit');
+  if(sub){ sub.disabled=!allAnswered; sub.textContent=allAnswered?'Submit \u2192':'Answer all questions to continue'; }
+}
+
+function submitPlacementTest(){
+  const qs=PLACEMENT_TESTS[_ptLevel]||[];
+  let score=0;
+  const resultItems=qs.map((q,qi)=>{
+    const given=_ptAnswers[qi];
+    const correct=given===q.answer;
+    if(correct) score++;
+    const opts=q.opts.map((o,oi)=>{
+      const isCorrOpt=oi===q.answer, isGiven=oi===given;
+      const cls=isCorrOpt?'opt correct':(isGiven?'opt wrong':'opt');
+      return `<button class="${cls}" disabled><span class="ok">${String.fromCharCode(65+oi)}</span><span>${o}</span></button>`;
+    }).join('');
+    return `<div class="pt-q" style="margin-bottom:18px;text-align:left">
+      <div class="q" style="font-size:14.5px;margin-bottom:8px">${qi+1}. ${q.q}</div>
+      ${opts}
+      <div class="kc-fb show ${correct?'good':'bad'}" style="margin-top:4px"><b>${correct?'Correct! ':'Not quite. </b>'}</b>${q.explain}</div>
+    </div>`;
+  }).join('');
+
+  const pct=Math.round(score/qs.length*100);
+  const msg=score===qs.length?'\u{1F389} Perfect score! You\u2019re well prepared.':score>=3?'\u{1F44D} Good foundation \u2014 the course will fill in the gaps.':'\u{1F4DA} The course will be a great review \u2014 let\u2019s dive in.';
+  const host=document.getElementById('modalHost');
+  host.innerHTML=`<div class="gate-bg"><div class="gate-card" style="max-width:640px;overflow-y:auto;max-height:90vh">
+    <svg class="wave-hero" viewBox="0 0 400 54" preserveAspectRatio="none"><path d="M0 40 Q 20 5 40 38 T 80 30 T 120 36 T 160 27 L 400 27" fill="none" stroke="url(#wgrad)" stroke-width="3" stroke-linecap="round"/></svg>
+    <h2 style="margin-bottom:6px">You scored ${score} / ${qs.length}</h2>
+    <p style="margin-bottom:18px">${msg}</p>
+    <div style="text-align:left">${resultItems}</div>
+    <button class="btn prim" onclick="startCourseFromPlacement()" style="width:100%;margin-top:18px">Start the course \u2192</button>
+  </div></div>`;
+}
+
+function startCourseFromPlacement(){
+  document.getElementById('modalHost').innerHTML='';
+  try{ render(); }catch(e){ console.error('Render error after placement:',e); }
 }
 
 /* ============================================================
