@@ -344,6 +344,11 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .doubt{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;margin:28px 0 10px;box-shadow:var(--shadow)}
 .doubt .d-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .doubt .d-badge{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--signal)}
+.doubt .d-how{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:14px;font-size:13px}
+.doubt .d-how-step{display:flex;align-items:baseline;gap:10px;padding:4px 0;color:var(--ink-soft)}
+.doubt .d-how-n{flex:none;width:20px;height:20px;border-radius:50%;background:var(--signal);color:#fff;font-size:10.5px;font-weight:700;display:grid;place-items:center}
+.doubt .d-how-api{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-soft);line-height:1.55}
+.doubt .d-how-link{background:none;border:none;color:var(--violet);font-weight:600;cursor:pointer;font-size:12.5px;padding:0;font-family:inherit;text-decoration:underline}
 .doubt .d-row{display:flex;gap:10px;margin-bottom:12px}
 .doubt .d-input{flex:1;padding:11px 14px;border:1.5px solid var(--line);border-radius:var(--r-sm);font-family:inherit;font-size:14px;resize:none;min-height:44px}
 .doubt .d-input:focus{outline:none;border-color:var(--signal)}
@@ -1310,9 +1315,21 @@ function wirePipelineTips(){
 function doubtPanel(moduleId){return `
  <div class="doubt" id="doubt-${moduleId}">
    <div class="d-head"><span class="d-badge">\u{1F9E0} Ask a Doubt</span></div>
-   <p style="font-size:13.5px;color:var(--ink-soft);margin-bottom:12px">Stuck on something in this module? Ask the AI tutor — it stays on-topic and keeps things simple.</p>
+   <p style="font-size:13.5px;color:var(--ink-soft);margin-bottom:10px">Stuck on something in this module? Ask the AI tutor below — it stays on-topic and keeps things simple.</p>
+   <div class="d-how">
+     <div class="d-how-step"><span class="d-how-n">1</span><span>Type your question about this module in the box below.</span></div>
+     <div class="d-how-step"><span class="d-how-n">2</span><span>Press <b>Ask</b> or hit <b>Enter</b> to send.</span></div>
+     <div class="d-how-step"><span class="d-how-n">3</span><span>The AI tutor will reply in a few seconds.</span></div>
+     <div class="d-how-api">
+       \u{1F511} <b>No response?</b> You need a free API key to power the tutor.
+       Go to <button class="d-how-link" onclick="go('settings')">AI Tutor Settings</button>,
+       choose <b>Google Gemini</b> (free tier), get your key at
+       <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" style="color:var(--violet);font-weight:600">aistudio.google.com/app/apikey</a>,
+       and paste it in.
+     </div>
+   </div>
    <div class="d-row">
-     <textarea class="d-input" id="dq-${moduleId}" placeholder="Type your question…" rows="1" maxlength="500"
+     <textarea class="d-input" id="dq-${moduleId}" placeholder="Type your question about this module…" rows="1" maxlength="500"
        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();askDoubt(${moduleId})}"></textarea>
      <button class="d-send" id="ds-${moduleId}" onclick="askDoubt(${moduleId})">Ask</button>
    </div>
