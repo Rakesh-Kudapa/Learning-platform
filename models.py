@@ -37,6 +37,7 @@ class User(UserMixin, db.Model):
     feedback = db.relationship("Feedback", backref="user", cascade="all, delete-orphan")
     contributions = db.relationship("Contribution", backref="user", cascade="all, delete-orphan")
     module_unlocks = db.relationship("ModuleUnlock", backref="user", cascade="all, delete-orphan")
+    exam_unlock = db.relationship("ExamUnlock", backref="user", uselist=False, cascade="all, delete-orphan")
 
 
 class Progress(db.Model):
@@ -123,6 +124,15 @@ class ModuleUnlock(db.Model):
     module_id = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     __table_args__ = (db.UniqueConstraint("user_id", "module_id", name="uq_user_module"),)
+
+
+class ExamUnlock(db.Model):
+    """Admin override that gives one user access to the final exam
+    regardless of whether they've completed all module knowledge checks."""
+    __tablename__ = "exam_unlocks"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 # ------------------------------------------------------------------

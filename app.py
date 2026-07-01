@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 from functools import wraps
 from models import (db, login_manager, User, Progress, KnowledgeRating,
                     Feedback, Contribution, Doubt, TestResult,
-                    AdminGrant, ModuleUnlock)
+                    AdminGrant, ModuleUnlock, ExamUnlock)
 
 load_dotenv()
 
@@ -95,11 +95,14 @@ def create_app():
     @login_required
     def api_me():
         unlocks = ModuleUnlock.query.filter_by(user_id=current_user.id).all()
+        exam_unlocked = (is_admin_user() or
+                         ExamUnlock.query.filter_by(user_id=current_user.id).first() is not None)
         return jsonify({
             "name": current_user.name,
             "email": current_user.email,
             "is_admin": is_admin_user(),
             "unlocked_modules": [u.module_id for u in unlocks],
+            "exam_unlocked": exam_unlocked,
         })
 
     # ------------------------------------------------------------
@@ -520,6 +523,29 @@ def create_app():
         db.session.commit()
         return jsonify({"ok": True})
 
+    @app.route("/api/admin/unlock-exam", methods=["POST"])
+    @admin_required
+    def api_admin_unlock_exam():
+        payload = request.get_json(silent=True) or {}
+        user = db.session.get(User, payload.get("user_id"))
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        if not ExamUnlock.query.filter_by(user_id=user.id).first():
+            db.session.add(ExamUnlock(user_id=user.id))
+            db.session.commit()
+        return jsonify({"ok": True})
+
+    @app.route("/api/admin/lock-exam", methods=["POST"])
+    @admin_required
+    def api_admin_lock_exam():
+        payload = request.get_json(silent=True) or {}
+        user = db.session.get(User, payload.get("user_id"))
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        ExamUnlock.query.filter_by(user_id=user.id).delete()
+        db.session.commit()
+        return jsonify({"ok": True})
+
     # ------------------------------------------------------------
     #  Per-user admin actions — edit, delete, performance report
     # ------------------------------------------------------------
@@ -573,9 +599,11 @@ def create_app():
                     .order_by(Feedback.created_at.desc()).all())
 
         from course_data import MODULE_TITLES
+        exam_unlocked = ExamUnlock.query.filter_by(user_id=user_id).first() is not None
         return jsonify({
             "user": {"id": user.id, "name": user.name, "email": user.email,
                      "joined": user.created_at.strftime("%Y-%m-%d %H:%M")},
+            "exam_unlocked": exam_unlocked,
             "knowledge_ratings": [{"id": r.id, "stage": r.stage, "level": r.level,
                                    "at": r.created_at.strftime("%Y-%m-%d %H:%M")} for r in ratings],
             "progress": _module_scores(user_id),
@@ -707,6 +735,7 @@ def create_app():
         Doubt.query.delete()
         KnowledgeRating.query.delete()
         ModuleUnlock.query.delete()
+        ExamUnlock.query.delete()
         Progress.query.delete()
         User.query.delete()
         db.session.commit()
@@ -750,6 +779,7 @@ def create_app():
                 "test_passed": best_test.passed if best_test else None,
                 "feedback_rating": fb.rating if fb else None,
                 "unlocked_modules": unlocked,
+                "exam_unlocked": ExamUnlock.query.filter_by(user_id=u.id).first() is not None,
                 "is_admin": (u.email.lower() == ADMIN_EMAIL or
                              AdminGrant.query.filter_by(email=u.email.lower()).first() is not None),
             })

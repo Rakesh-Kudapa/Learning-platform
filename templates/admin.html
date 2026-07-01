@@ -350,6 +350,22 @@ tr:hover td{background:#F4F7FB}
       </div>
       <p class="muted" id="mgAccountMsg" style="margin-top:8px"></p>
       <div class="modal-actions"><button class="btn-primary" onclick="saveManageAccount()">Save changes</button></div>
+
+      <!-- Final Exam Access toggle -->
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
+        <label style="display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:10px">Final Exam Access</label>
+        <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface-2);border:1.5px solid var(--line);border-radius:10px">
+          <span style="font-size:20px">&#127891;</span>
+          <div style="flex:1">
+            <div id="examUnlockStatus" style="font-weight:600;font-size:13.5px"></div>
+            <div style="font-size:12px;color:var(--ink-soft);margin-top:2px">Unlocked users can open the Final Exam without completing all modules.</div>
+          </div>
+          <div style="display:flex;gap:8px;flex:none">
+            <button id="examUnlockBtn" class="btn-primary" style="padding:7px 14px;font-size:12.5px" onclick="setExamAccess(true)">Unlock</button>
+            <button id="examLockBtn" class="btn-sm" style="padding:7px 14px;font-size:12.5px;color:var(--warn);border-color:var(--warn)" onclick="setExamAccess(false)">Lock</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="mg-panel" id="mgPanel-modules">
@@ -369,13 +385,13 @@ tr:hover td{background:#F4F7FB}
 
 <!-- Performance report modal -->
 <div class="modal-overlay" id="reportModal">
-  <div class="modal-box" style="max-width:640px">
+  <div class="modal-box" style="max-width:820px">
     <button class="modal-close" onclick="closePerformanceReport()">&times;</button>
     <h3 id="reportTitle">Performance Report</h3>
-    <div class="modal-sub">Everything recorded for this learner — module scores, final exam attempts, doubts, contributions, and feedback.</div>
+    <div class="modal-sub" id="reportSub"></div>
     <div id="reportBody"></div>
     <div class="modal-actions">
-      <button class="btn-primary" onclick="downloadPerformanceReport()">⬇ Download Report (CSV)</button>
+      <button class="btn-primary" onclick="downloadPerformanceReport()">&#11015; Download Report (CSV)</button>
     </div>
   </div>
 </div>
@@ -825,10 +841,41 @@ function openManageUser(userId) {
   document.getElementById('mgName').value = u.name;
   document.getElementById('mgEmail').value = u.email;
   document.getElementById('mgAccountMsg').textContent = '';
+  updateExamAccessUI(u.exam_unlocked);
   renderModuleManagerList(u.unlocked_modules);
   switchManageTab('account');
   document.getElementById('manageModal').classList.add('open');
   loadManageActivity();
+}
+
+function updateExamAccessUI(unlocked) {
+  const status = document.getElementById('examUnlockStatus');
+  const unlockBtn = document.getElementById('examUnlockBtn');
+  const lockBtn = document.getElementById('examLockBtn');
+  if (!status) return;
+  if (unlocked) {
+    status.textContent = 'Unlocked — user can open the Final Exam';
+    status.style.color = 'var(--success)';
+    unlockBtn.style.display = 'none';
+    lockBtn.style.display = 'inline-block';
+  } else {
+    status.textContent = 'Locked — user must complete all modules first';
+    status.style.color = 'var(--ink-soft)';
+    unlockBtn.style.display = 'inline-block';
+    lockBtn.style.display = 'none';
+  }
+}
+
+async function setExamAccess(unlock) {
+  const endpoint = unlock ? '/api/admin/unlock-exam' : '/api/admin/lock-exam';
+  const r = await fetch(endpoint, {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({user_id: MM_USER_ID})});
+  if (r.ok) {
+    const u = DATA.users.find(x => x.id === MM_USER_ID);
+    if (u) u.exam_unlocked = unlock;
+    updateExamAccessUI(unlock);
+    renderUserDB();
+  } else { alert('Could not update exam access.'); }
 }
 
 function closeManageUser() {
@@ -1031,48 +1078,120 @@ function closePerformanceReport() {
 function renderPerformanceReport() {
   const d = REPORT_DATA;
   if (!d) return;
+
   const pre = d.knowledge_ratings.find(r => r.stage === 'pre');
   const post = d.knowledge_ratings.find(r => r.stage === 'post');
+  const bestExam = d.test_attempts.length ? d.test_attempts.reduce((b, t) => t.score > (b ? b.score : -1) ? t : b, null) : null;
 
-  let modulesHtml = '<p class="report-empty">No module activity synced yet — this learner hasn\'t answered any knowledge checks since this feature was added.</p>';
+  // --- Summary stat cards (mirrors learner dashboard) ---
+  let totalQ = 0, totalCorrect = 0;
   if (d.progress && d.progress.modules) {
-    modulesHtml = d.progress.modules.map(m => {
-      if (!m.attempted) return `<div class="report-row"><span>${esc(m.module)}</span><span class="muted">Not attempted</span></div>`;
+    d.progress.modules.forEach(m => { if (m.attempted) { totalQ += m.total; totalCorrect += m.correct; } });
+  }
+  const overallPct = totalQ ? Math.round(totalCorrect / totalQ * 100) : 0;
+  const xp = d.progress ? d.progress.xp : 0;
+  const examStat = bestExam ? (bestExam.passed ? '&#10003;' : bestExam.score + '/' + bestExam.total) : '&mdash;';
+
+  // --- Module table (mirrors learner .perf-table) ---
+  let modRows = '';
+  if (d.progress && d.progress.modules) {
+    modRows = d.progress.modules.map(m => {
+      if (!m.attempted) return `<tr><td>${esc(m.module)}</td><td class="muted">Not attempted</td><td></td><td></td></tr>`;
       const pct = m.total ? Math.round(m.correct / m.total * 100) : 0;
-      return `<div class="report-row"><span>${esc(m.module)}</span><span>${m.correct}/${m.total} (${pct}%)${m.done ? ' <span class="badge pass">DONE</span>' : ''}</span></div>`;
+      return `<tr>
+        <td>${esc(m.module)}${m.done ? ' <span class="badge pass" style="font-size:9.5px">DONE</span>' : ''}</td>
+        <td>${m.correct} / ${m.total}</td>
+        <td><div class="perf-bar-wrap"><div class="perf-bar" style="width:${pct}%"></div></div></td>
+        <td class="perf-pct">${pct}%</td>
+      </tr>`;
     }).join('');
+  } else {
+    modRows = `<tr><td colspan="4" class="muted" style="text-align:center;padding:14px">No module activity synced yet</td></tr>`;
   }
 
-  const examHtml = d.test_attempts.length
-    ? d.test_attempts.map(t => `<div class="report-row"><span>${t.at}</span><span>${t.score}/${t.total} ${t.passed ? '<span class="badge pass">PASS</span>' : '<span class="badge fail">FAIL</span>'}</span></div>`).join('')
-    : '<p class="report-empty">No final exam attempts yet.</p>';
+  // --- Final exam attempts ---
+  const examRows = d.test_attempts.length
+    ? d.test_attempts.map(t => `<tr>
+        <td>${t.at}</td>
+        <td><b>${t.score}/${t.total}</b> (${Math.round(t.score/t.total*100)}%)</td>
+        <td>${t.passed ? '<span class="badge pass">PASS</span>' : '<span class="badge fail">FAIL</span>'}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="3" class="muted" style="text-align:center;padding:10px">No final exam attempts yet</td></tr>`;
 
+  // --- Exam unlock status ---
+  const examUnlockRow = `<div class="report-row" style="margin-bottom:8px">
+    <span>Final Exam Access</span>
+    <span>${d.exam_unlocked ? '<span class="badge pass">Unlocked by admin</span>' : '<span class="badge none">Normal (complete all modules)</span>'}</span>
+  </div>`;
+
+  // --- Doubts, contributions, feedback (compact) ---
   const doubtsHtml = d.doubts.length
-    ? d.doubts.map(x => `<div class="report-qa"><div class="rq-q">Q: ${esc(x.question)}</div><div class="rq-a">${esc((x.answer||'').slice(0,200))}${(x.answer||'').length>200?'…':''}</div><div class="rq-meta">${esc(x.module)} &middot; ${x.at}</div></div>`).join('')
+    ? d.doubts.slice(0, 5).map(x => `<div class="report-qa">
+        <div class="rq-q">${esc(x.module)}: ${esc(x.question.slice(0, 90))}${x.question.length > 90 ? '&hellip;' : ''}</div>
+        <div class="rq-meta">${x.at}</div>
+      </div>`).join('') + (d.doubts.length > 5 ? `<p class="muted" style="margin-top:4px">+${d.doubts.length - 5} more doubts</p>` : '')
     : '<p class="report-empty">No doubts asked yet.</p>';
 
-  const contribHtml = d.contributions.length
-    ? d.contributions.map(c => `<div class="report-row"><span>${esc(c.title)}</span><span class="muted">${c.at}</span></div>`).join('')
-    : '<p class="report-empty">No contributions yet.</p>';
-
-  const feedbackHtml = d.feedback.length
-    ? d.feedback.map(f => `<div class="report-row"><span>${'★'.repeat(f.rating||0)}<span style="color:var(--line)">${'★'.repeat(5-(f.rating||0))}</span></span><span class="muted">${f.at}</span></div>`).join('')
-    : '<p class="report-empty">No feedback submitted yet.</p>';
+  document.getElementById('reportSub').textContent = `${d.user.email} · Joined ${d.user.joined}`;
 
   document.getElementById('reportBody').innerHTML = `
-    <div class="report-section">
-      <h4>Knowledge Level</h4>
+    <!-- Summary cards -->
+    <div class="summary-row" style="margin-bottom:18px">
+      <div class="summary-card"><div class="sc-val">${totalCorrect}/${totalQ}</div><div class="sc-lbl">Module Qs Correct</div></div>
+      <div class="summary-card"><div class="sc-val">${overallPct}%</div><div class="sc-lbl">Module Accuracy</div></div>
+      <div class="summary-card"><div class="sc-val">${xp}</div><div class="sc-lbl">Total XP</div></div>
+      <div class="summary-card"><div class="sc-val" style="font-size:22px">${examStat}</div><div class="sc-lbl">Best Exam Score</div></div>
+    </div>
+
+    <!-- Knowledge level -->
+    <div class="wrap-box" style="margin-bottom:14px">
+      <h3 style="margin-top:0;font-size:14px;margin-bottom:10px">Knowledge Level</h3>
       <div class="report-row"><span>Pre-course</span><span>${pre ? levelBadge(pre.level) : '<span class="muted">Not set</span>'}</span></div>
       <div class="report-row"><span>Post-course</span><span>${post ? levelBadge(post.level) : '<span class="muted">Not set</span>'}</span></div>
     </div>
-    <div class="report-section">
-      <h4>Module-by-Module Scores ${d.progress ? `&middot; ${d.progress.xp} XP &middot; ${d.progress.badges.length} badges` : ''}</h4>
-      ${modulesHtml}
+
+    <!-- Module-by-module performance table -->
+    <div class="wrap-box" style="margin-bottom:14px">
+      <h3 style="margin-top:0;font-size:14px;margin-bottom:10px">Module-by-Module Scores
+        ${d.progress ? `<span class="muted" style="font-weight:400;font-size:12px">&nbsp;&middot;&nbsp;${d.progress.xp} XP &middot; ${d.progress.badges.length} badge(s)</span>` : ''}
+      </h3>
+      <div style="overflow-x:auto">
+      <table class="perf-table">
+        <thead><tr><th>Module</th><th>Score</th><th style="min-width:120px">Progress</th><th></th></tr></thead>
+        <tbody>${modRows}</tbody>
+      </table>
+      </div>
     </div>
-    <div class="report-section"><h4>Final Exam Attempts</h4>${examHtml}</div>
-    <div class="report-section"><h4>Doubts Asked (${d.doubts.length})</h4>${doubtsHtml}</div>
-    <div class="report-section"><h4>Contributions (${d.contributions.length})</h4>${contribHtml}</div>
-    <div class="report-section"><h4>Feedback</h4>${feedbackHtml}</div>
+
+    <!-- Final exam -->
+    <div class="wrap-box" style="margin-bottom:14px">
+      <h3 style="margin-top:0;font-size:14px;margin-bottom:10px">Final Exam</h3>
+      ${examUnlockRow}
+      <div style="overflow-x:auto">
+      <table class="perf-table">
+        <thead><tr><th>Date</th><th>Score</th><th>Result</th></tr></thead>
+        <tbody>${examRows}</tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- Doubts asked -->
+    <div class="wrap-box" style="margin-bottom:14px">
+      <h3 style="margin-top:0;font-size:14px;margin-bottom:10px">Doubts Asked (${d.doubts.length})</h3>
+      ${doubtsHtml}
+    </div>
+
+    <!-- Feedback & contributions -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div class="wrap-box">
+        <h3 style="margin-top:0;font-size:14px;margin-bottom:8px">Feedback (${d.feedback.length})</h3>
+        ${d.feedback.length ? d.feedback.map(f => `<div class="report-row"><span>${'&#9733;'.repeat(f.rating||0)}</span><span class="muted">${f.at}</span></div>`).join('') : '<p class="report-empty">None yet.</p>'}
+      </div>
+      <div class="wrap-box">
+        <h3 style="margin-top:0;font-size:14px;margin-bottom:8px">Contributions (${d.contributions.length})</h3>
+        ${d.contributions.length ? d.contributions.map(c => `<div class="report-row"><span>${esc(c.title)}</span><span class="muted">${c.at}</span></div>`).join('') : '<p class="report-empty">None yet.</p>'}
+      </div>
+    </div>
   `;
 }
 

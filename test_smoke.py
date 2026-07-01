@@ -169,6 +169,25 @@ def smoke():
         target = next(u for u in r.get_json()["users"] if u["id"] == other_user_id)
         check("unlock-all unlocks every module", sorted(target["unlocked_modules"]) == list(range(12)))
 
+        # --- Exam unlock / lock ---
+        r = c2b.post("/api/admin/unlock-exam", json={"user_id": other_user_id}, content_type="application/json")
+        check("POST /api/admin/unlock-exam succeeds", r.status_code == 200)
+        r = c2b.get("/api/admin/stats")
+        target = next(u for u in r.get_json()["users"] if u["id"] == other_user_id)
+        check("exam_unlocked shows in stats after unlock", target["exam_unlocked"] is True)
+
+        r = c2b.get(f"/api/admin/users/{other_user_id}/report")
+        check("exam_unlocked in report", r.get_json()["exam_unlocked"] is True)
+
+        r = c2b.post("/api/admin/lock-exam", json={"user_id": other_user_id}, content_type="application/json")
+        check("POST /api/admin/lock-exam succeeds", r.status_code == 200)
+        r = c2b.get("/api/admin/stats")
+        target = next(u for u in r.get_json()["users"] if u["id"] == other_user_id)
+        check("exam_unlocked false after lock", target["exam_unlocked"] is False)
+
+        # learner whose exam is unlocked sees exam_unlocked=true in /api/me
+        c2b.post("/api/admin/unlock-exam", json={"user_id": other_user_id}, content_type="application/json")
+
         r = c2b.post("/api/admin/lock-all", json={"user_id": other_user_id}, content_type="application/json")
         r = c2b.get("/api/admin/stats")
         target = next(u for u in r.get_json()["users"] if u["id"] == other_user_id)

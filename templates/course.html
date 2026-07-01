@@ -1564,7 +1564,7 @@ function renderNav(){
   if(extra){
     const finOn=state.current==='finale', conOn=state.current==='contrib';
     const examOn=state.current==='exam'||state.current==='certificate'||state.current==='finaltest';
-    const examLocked=!allModulesDone();
+    const examLocked=!state.isAdmin&&!state.examUnlocked&&!allModulesDone();
     extra.innerHTML=`
       <button class="extra-btn" style="${examOn?'background:var(--surface-2);color:var(--ink)':''}" onclick="${examLocked?`toast('lvl','\u{1F512}','Finish every module to unlock the final exam')`:`go('exam')`}">
         <span class="e-ico">${examLocked?'\u{1F512}':'\u{1F393}'}</span><span>Performance &amp; Final Exam</span></button>
@@ -2446,6 +2446,7 @@ window.addEventListener('load',async ()=>{
       state.name=me.name||'';
       state.isAdmin=!!me.is_admin;
       state.adminUnlocked=me.unlocked_modules||[];
+      state.examUnlocked=!!me.exam_unlocked;
       persist();
       const hi=document.getElementById('hiUser');
       if(hi) hi.textContent='Hi, '+(me.name||'').split(' ')[0];
