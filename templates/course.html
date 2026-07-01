@@ -1624,10 +1624,10 @@ function answer(i,qi,j){
   const results=getChecks(i);
   if(results[qi]==null){
     results[qi]=correct;
-    const gain=correct?c.xp:Math.round(c.xp/2);
-    addXP(gain);
+    const gain=correct?c.xp:0;
+    if(gain) addXP(gain);
     if(correct) toast('xp','\u2713','+'+gain+' XP \u2014 nice work');
-    else toast('xp','\u00BD','+'+gain+' XP \u2014 keep going');
+    else toast('lvl','\u2715','Incorrect \u2014 no XP awarded');
     if(allChecked(i)){
       if(!state.done[i]) state.done[i]=true;
       const nb=document.getElementById('nextBtn-'+i);
