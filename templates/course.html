@@ -105,17 +105,16 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .page p.muted{color:var(--ink-soft)}
 
 /* narration bar */
-.narrate{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:26px}
-.narrate .media-btn{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--surface);
-  border:1.5px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);cursor:pointer;
-  transition:.15s;text-align:left;flex:1;min-width:210px;max-width:320px}
-.narrate .media-btn:hover{border-color:var(--violet);transform:translateY(-1px);box-shadow:0 6px 18px rgba(108,92,231,.14)}
+.narrate{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start;margin-bottom:26px}
+.narrate .media-item{display:flex;flex-direction:column;align-items:center;gap:8px}
+.narrate .media-btn{width:64px;height:64px;border-radius:16px;border:2px solid var(--line);background:var(--surface);
+  cursor:pointer;display:grid;place-items:center;font-size:24px;box-shadow:var(--shadow);transition:.15s}
+.narrate .media-btn:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(108,92,231,.18)}
 .narrate .media-btn:active{transform:translateY(0)}
-.narrate .mb-ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none;font-size:18px}
-.narrate .mb-ico.listen{background:var(--grad)}
-.narrate .mb-ico.video{background:var(--surface-2);border:1.5px solid var(--line);color:var(--violet)}
-.narrate .mb-text .mb-title{font-size:14px;font-weight:700;color:var(--ink);font-family:'Space Grotesk'}
-.narrate .mb-text .mb-desc{font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+.narrate .media-btn.listen{background:var(--grad);border-color:transparent;color:#fff}
+.narrate .media-btn.video{color:var(--violet);border-color:var(--violet)}
+.narrate .media-btn.video:hover{background:rgba(108,92,231,.06)}
+.narrate .media-caption{font-size:11.5px;color:var(--ink-soft);font-weight:500;text-align:center;max-width:80px;line-height:1.35}
 .narrate .play,.narrate .watch{display:none}
 
 /* callouts & cards */
@@ -1325,20 +1324,14 @@ function narrateBar(label,modIdx){
   const vidSrc='/static/videos/module-'+vidNum+'.mp4';
   return `
  <div class="narrate">
-   <button class="media-btn" onclick="toggleNarration(this)" aria-label="Listen to narration">
-     <span class="mb-ico listen" id="narrBtn" style="color:#fff">\u{1F3A7}</span>
-     <span class="mb-text">
-       <span class="mb-title">Listen</span>
-       <span class="mb-desc">Press this to listen to the narration</span>
-     </span>
-   </button>
-   <button class="media-btn" id="watchBtn-${modIdx}" onclick="toggleVideo(${modIdx})" aria-label="Watch video" style="display:none">
-     <span class="mb-ico video">\u{1F3AC}</span>
-     <span class="mb-text">
-       <span class="mb-title">Watch Video</span>
-       <span class="mb-desc">Press this to see the explainer video</span>
-     </span>
-   </button>
+   <div class="media-item">
+     <button class="media-btn listen" id="narrBtn" onclick="toggleNarration(this)" aria-label="Listen to narration">\u{1F3A7}</button>
+     <span class="media-caption" id="narrCaption-${modIdx}">Click this to listen</span>
+   </div>
+   <div class="media-item" id="watchItem-${modIdx}" style="display:none">
+     <button class="media-btn video" id="watchBtn-${modIdx}" onclick="toggleVideo(${modIdx})" aria-label="Watch video">\u{1F3AC}</button>
+     <span class="media-caption">Click this to watch</span>
+   </div>
  </div>
  <div class="vid-wrap" id="vid-wrap-${modIdx}">
    <div class="vid-card">
@@ -1734,14 +1727,14 @@ function toggleVideo(modIdx){
 }
 
 function probeVideos(){
-  document.querySelectorAll('[id^="watchBtn-"]').forEach(btn=>{
-    const idx=btn.id.replace('watchBtn-','');
+  document.querySelectorAll('[id^="watchItem-"]').forEach(item=>{
+    const idx=item.id.replace('watchItem-','');
     const vidNum=String(+idx+1).padStart(2,'0');
     const src='/static/videos/module-'+vidNum+'.mp4';
     fetch(src,{method:'HEAD'}).then(r=>{
-      if(r.ok) btn.style.display='';
-      else{ btn.remove(); const w=document.getElementById('vid-wrap-'+idx); if(w) w.remove(); }
-    }).catch(()=>{ btn.remove(); const w=document.getElementById('vid-wrap-'+idx); if(w) w.remove(); });
+      if(r.ok) item.style.display='flex';
+      else{ item.remove(); const w=document.getElementById('vid-wrap-'+idx); if(w) w.remove(); }
+    }).catch(()=>{ item.remove(); const w=document.getElementById('vid-wrap-'+idx); if(w) w.remove(); });
   });
 }
 
@@ -1757,25 +1750,20 @@ let speaking=false;
 function toggleNarration(btn){
   if(!('speechSynthesis' in window)){ toast('lvl','\u{1F507}','Narration isn\u2019t supported in this browser'); return; }
   const text=NARR[state.current]||'';
-  const ico=btn.querySelector('.mb-ico')||btn;
-  const title=btn.querySelector('.mb-title');
-  const desc=btn.querySelector('.mb-desc');
+  const caption=btn.parentElement?btn.parentElement.querySelector('.media-caption'):null;
   function resetBtn(){
     speaking=false;
-    ico.textContent='\u{1F3A7}';
-    if(title) title.textContent='Listen';
-    if(desc) desc.textContent='Press this to listen to the narration';
-    btn.style.borderColor='';
+    btn.textContent='\u{1F3A7}';
+    btn.style.background=''; btn.style.borderColor='';
+    if(caption) caption.textContent='Click this to listen';
   }
   if(speaking){ speechSynthesis.cancel(); resetBtn(); return; }
   const u=new SpeechSynthesisUtterance(text);
   u.rate=.98; u.pitch=1;
   u.onend=()=>{ resetBtn(); };
   speechSynthesis.cancel(); speechSynthesis.speak(u); speaking=true;
-  ico.textContent='\u23F8';
-  if(title) title.textContent='Stop';
-  if(desc) desc.textContent='Press to stop the narration';
-  btn.style.borderColor='var(--violet)';
+  btn.textContent='\u23F8';
+  if(caption) caption.textContent='Click to stop';
 }
 
 /* ============================================================
