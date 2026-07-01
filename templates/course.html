@@ -154,7 +154,16 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .obj-list li span{font-size:15px;color:#28324A}
 
 /* knowledge check */
-.kc{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin:30px 0 10px;box-shadow:var(--shadow)}
+.kc-wrap{margin:30px 0 10px}
+.kc-trigger{display:flex;align-items:center;gap:10px;width:100%;padding:14px 20px;border:1.5px solid var(--violet);border-radius:var(--r);background:rgba(108,92,231,.06);cursor:pointer;font-family:'Space Grotesk';font-size:15px;font-weight:700;color:var(--violet);transition:.15s}
+.kc-trigger:hover{background:rgba(108,92,231,.12)}
+.kc-trigger .kt-ico{font-size:18px}
+.kc-trigger .kt-xp{margin-left:auto;font-family:'IBM Plex Mono';font-size:12px;color:var(--signal);font-weight:600}
+.kc-trigger .kt-arr{margin-left:8px;font-size:13px;transition:transform .2s}
+.kc-trigger.open .kt-arr{transform:rotate(90deg)}
+.kc{background:var(--surface);border:1px solid var(--line);border-radius:0 0 var(--r) var(--r);border-top:none;padding:22px;box-shadow:var(--shadow)}
+.kc-body{display:none}
+.kc-body.open{display:block}
 .kc .kc-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .kc .kc-badge{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--violet)}
 .kc .kc-xp{margin-left:auto;font-family:'IBM Plex Mono';font-size:12px;color:var(--signal);font-weight:600}
@@ -1330,21 +1339,50 @@ function checkBlock(i){
   const m=COURSE[i], qs=m.checks||[];
   const totalXP=qs.reduce((s,c)=>s+c.xp,0);
   const results=getChecks(i);
+  const anyAnswered=results.some(r=>r!==null);
+  const done=allChecked(i);
+  const isOpen=anyAnswered;
+  const qdone=results.filter(r=>r!==null).length;
+  const label=done?`\u2713 Knowledge Check Complete`:`Test Your Knowledge`;
+  const sub=done?`${qs.length} / ${qs.length} answered`:(anyAnswered?`${qdone} / ${qs.length} answered`:`${qs.length} question${qs.length>1?'s':''} \u00b7 +${totalXP} XP`);
   return `
- <div class="kc" id="kc-${i}">
-   <div class="kc-head"><span class="kc-badge">\u2713 Knowledge Check${qs.length>1?' ('+qs.length+' questions)':''}</span><span class="kc-xp">+${totalXP} XP</span></div>
-   ${qs.map((c,qi)=>{
-     const answered=results[qi]!=null;
-     return `
-     <div style="${qi>0?'margin-top:20px;padding-top:18px;border-top:1px solid var(--line-soft)':''}">
-       <div class="q">${qi+1}. ${c.q}</div>
-       <div id="opts-${i}-${qi}">
-         ${c.opts.map((o,j)=>`<button class="opt" onclick="answer(${i},${qi},${j})" ${answered?'disabled':''}><span class="ok">${String.fromCharCode(65+j)}</span><span>${o}</span></button>`).join('')}
-       </div>
-       <div class="kc-fb" id="fb-${i}-${qi}"></div>
-     </div>`;
-   }).join('')}
+ <div class="kc-wrap" id="kc-wrap-${i}">
+   <button class="kc-trigger${isOpen?' open':''}" onclick="toggleKC(${i})">
+     <span class="kt-ico">\u{1F9E0}</span>
+     <span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left">
+       <span>${label}</span>
+       <span style="font-size:11.5px;font-weight:500;color:var(--ink-soft);font-family:'Inter'">${sub}</span>
+     </span>
+     <span class="kt-xp">${done?`\u2713 +${totalXP} XP earned`:`+${totalXP} XP`}</span>
+     <span class="kt-arr">&#9656;</span>
+   </button>
+   <div class="kc-body${isOpen?' open':''}" id="kc-${i}">
+     <div class="kc">
+       ${qs.map((c,qi)=>{
+         const answered=results[qi]!=null;
+         return `
+         <div style="${qi>0?'margin-top:20px;padding-top:18px;border-top:1px solid var(--line-soft)':''}">
+           <div class="q">${qi+1}. ${c.q}</div>
+           <div id="opts-${i}-${qi}">
+             ${c.opts.map((o,j)=>`<button class="opt" onclick="answer(${i},${qi},${j})" ${answered?'disabled':''}><span class="ok">${String.fromCharCode(65+j)}</span><span>${o}</span></button>`).join('')}
+           </div>
+           <div class="kc-fb" id="fb-${i}-${qi}"></div>
+         </div>`;
+       }).join('')}
+     </div>
+   </div>
  </div>`;
+}
+
+function toggleKC(i){
+  const body=document.getElementById('kc-'+i);
+  const wrap=document.getElementById('kc-wrap-'+i);
+  if(!body||!wrap) return;
+  const btn=wrap.querySelector('.kc-trigger');
+  const opening=!body.classList.contains('open');
+  body.classList.toggle('open',opening);
+  if(btn) btn.classList.toggle('open',opening);
+  if(opening) body.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 function pageNav(i){
@@ -1597,8 +1635,26 @@ function answer(i,qi,j){
       checkBadges(i);
     }
     renderNav(); renderHUD();
+    updateKCTrigger(i);
   }
   persist();
+}
+
+function updateKCTrigger(i){
+  const wrap=document.getElementById('kc-wrap-'+i);
+  if(!wrap) return;
+  const m=COURSE[i], qs=m.checks||[];
+  const results=getChecks(i);
+  const totalXP=qs.reduce((s,c)=>s+c.xp,0);
+  const done=allChecked(i);
+  const qdone=results.filter(r=>r!==null).length;
+  const btn=wrap.querySelector('.kc-trigger');
+  if(!btn) return;
+  const spans=btn.querySelectorAll('span');
+  if(spans[0]) spans[0].textContent=done?'✓ Knowledge Check Complete':'Test Your Knowledge';
+  if(spans[1]) spans[1].textContent=done?`${qs.length} / ${qs.length} answered`:`${qdone} / ${qs.length} answered`;
+  const xpSpan=btn.querySelector('.kt-xp');
+  if(xpSpan) xpSpan.textContent=done?`✓ +${totalXP} XP earned`:`+${totalXP} XP`;
 }
 
 function addXP(n){ state.xp+=n; persist(); }
